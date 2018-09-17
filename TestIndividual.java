@@ -1,6 +1,13 @@
 // Test voor class TestIndividual --> Individual
 
 public class TestIndividual
+//  Deze classe bevat een aantal zeer eenvoudige procedures. 
+//  Individu wordt bepaald door genome (een geheel getal tussen -5 en 5)
+//  De method mutGenome() muteert het genome door er 1 bij op te tellen.
+//  De method setFenotype() berekent uit het genome het fenotype (een rij getallen tussen -0.5 en +0.5)
+//  De method getFitness() berekent nu de fitness (getal tussen 0 en 10) uit het Fenotype. 
+//         Deze moet nog gekoppeld worden aan de procedure evaluate_.evaluate(child) uit player70.java. 
+
 {
 	private int genome;
 	private double fitness;

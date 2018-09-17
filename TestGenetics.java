@@ -5,6 +5,18 @@ import java.util.Random;
 
 public class TestGenetics
 {
+	// Procedure stelt een aantal keer een nieuwe populatie samen. 
+	// Een nieuwe nieuwe populatie wordt samengesteld door een aantal parents te selecteren in de method: selectParents()
+	// Daarna wordt een aantal kinderen gecreerd door mutatie van een aantal van deze ouders in de method: createChildren() 
+	// Er vindt nu nog geen sex plaats bij reproductie. 
+	// Een populatie is een array van individuals TestIndividual[], de onderliggende class heet TestIndividual
+
+	// Een mooie taak zou zijn om deze procedure te koppelen aan de player70.java procedure
+	// Waarbij ook de fitness bepaald " officieel"  bepaald wordt (BentSigar etc.)
+
+	// Een tweede mooie taak zou zijn om een 2 ouder productie van een kind te maken. 
+
+
 	private static final int NUMBER_OF_POPULATIONS = 3; 				// aantal generaties
 	private static final int NUMBER_OF_INDIVIDUALS = 3; 				// size of population
 	private int currentIndividual; 							// index of next Individual
