@@ -81,15 +81,16 @@ public class Individual
 	
 	public void displayFenotype()	
 	{
-		System.out.printf("Genome: %d", genome);
-		System.out.println();
-		System.out.print("Fenotype ");
+		// System.out.printf("Genome: %d", genome);
+		// System.out.println();
+		// System.out.print("Fenotype ");
 		double[] fenotype = setFenotype();
-		for ( int counter = 0; counter < fenotype.length; counter++ )
+		for ( int counter = 0; counter < fenotype.length; counter++ ){ //Dit haakje miste volgens mij sowieso
 			// System.out.printf( "%d: %f\n", counter, fenotype[ counter ] ); 
-			System.out.printf( "- %.1f ", fenotype[ counter ] ); 
-		System.out.println();
-		System.out.printf("Fitness: %.1f", fitness);
-		System.out.println();
+			// System.out.printf( "- %.1f ", fenotype[ counter ] ); 
+		// System.out.println();
+		// System.out.printf("Fitness: %.1f", fitness);
+		// System.out.println();
+		}
 	}
 }
