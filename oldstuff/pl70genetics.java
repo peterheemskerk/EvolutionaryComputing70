@@ -1,110 +1,53 @@
-import org.vu.contest.ContestSubmission;
-import org.vu.contest.ContestEvaluation;
+// eerste java programmaatje
 
+import java.util.Scanner;
 import java.util.Random;
-import java.util.Properties;
 
-public class player70 implements ContestSubmission
-{
-	Random rnd_;
-	ContestEvaluation evaluation_;
-    	private int evaluations_limit_;
-	private final int[] genomeRange = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};	
 
-	public player70()
+// public class pl70genetics
+// {
+	// Procedure stelt een aantal keer een nieuwe populatie samen. 
+	// Een nieuwe nieuwe populatie wordt samengesteld door een aantal parents te selecteren in de method: selectParents()
+	// Daarna wordt een aantal kinderen gecreerd door mutatie van een aantal van deze ouders in de method: createChildren() 
+	// Er vindt nu nog geen sex plaats bij reproductie. 
+	// Een populatie is een array van individuals TestIndividual[], de onderliggende class heet TestIndividual
+
+	// Een mooie taak zou zijn om deze procedure te koppelen aan de player70.java procedure
+	// Waarbij ook de fitness bepaald " officieel"  bepaald wordt (BentSigar etc.)
+
+	// Een tweede mooie taak zou zijn om een 2 ouder productie van een kind te maken. 
+
+	/*
+
+	private static final int NUMBER_OF_POPULATIONS = 3; 				// aantal generaties
+	private static final int NUMBER_OF_INDIVIDUALS = 8; 				// size of population
+	private int currentIndividual; 							// index of next Individual
+	private static final Random randomNumbers = new Random();			// random number generator
+
+	public static void main( String[] args )	
 	{
-		rnd_ = new Random();
-	}
+		System.out.println("initiate first population...");
+		TestIndividual[] startPopulation = initPopulation();
+		detFitnessPop(startPopulation);
+		printpop(startPopulation);
+		TestIndividual[] currentPopulation = startPopulation;
 
-	
-	public void setSeed(long seed)
-	{
-		// Set seed of algortihms random process
-		rnd_.setSeed(seed);
-	}
+		for (int currentPop = 1; currentPop < NUMBER_OF_POPULATIONS; currentPop++)
+		{
+			System.out.printf("next population...%d", currentPop);
+			System.out.println();
+			TestIndividual[] newpopulation = nextPopulation(currentPopulation);		// creert next population	
+			System.out.println("...einde nextPopulation");
+			detFitnessPop(newpopulation);
+			// System.out.println("...einde detFitnesPop");
+			printpop(newpopulation);
+			currentPopulation = newpopulation;
+		}
+	} // end of main
 
+	*/
 
-	public void setEvaluation(ContestEvaluation evaluation)
-	{
-		// Set evaluation problem used in the run
-		evaluation_ = evaluation;
-		
-		// Get evaluation properties
-		Properties props = evaluation.getProperties();
-        	// Get evaluation limit
-        	evaluations_limit_ = Integer.parseInt(props.getProperty("Evaluations"));
-		// Property keys depend on specific evaluation
-		// E.g. double param = Double.parseDouble(props.getProperty("property_name"));
-        	boolean isMultimodal = Boolean.parseBoolean(props.getProperty("Multimodal"));
-        	boolean hasStructure = Boolean.parseBoolean(props.getProperty("Regular"));
-        	boolean isSeparable = Boolean.parseBoolean(props.getProperty("Separable"));
-
-		// Do sth with property values, e.g. specify relevant settings of your algorithm
-        	if(isMultimodal){
-   	  		// Do sth
-   		}else{
-   	         	// Do sth else
-   	     	}
- 	}
-   
-	public void run()
-	{
-		// Run your algorithm here
-        
- 	       	int evals = 0;
-		final int NUMBER_OF_POPULATIONS = 3; 				// aantal generaties
-		final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
-		final Random randomNumbers = new Random();			// random number generator
-		// final int[] genomeRange = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-
-        	// init population
-		Individual[] currentPop = initPopulation(NUMBER_OF_INDIVIDUALS);
-        	// calculate fitness
-		detFitnessPop(currentPop);
- 		printPop(currentPop);
-
-        	while(evals<evaluations_limit_){
-
-            		// Select parents		
-			int num_individuals = currentPop.length; 
-			Individual[] newParents = selectParents(currentPop);
-			int num_children = NUMBER_OF_INDIVIDUALS - newParents.length;
-			System.out.printf("nextPop...aantal pop: %d, aantal parents: %d, aantal children: %d", NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
-			System.out.println(); 
-
-            		// Apply crossover / mutation operators
-			Individual[] newChildren = crossoverChildren( num_children, newParents );
-			System.out.printf("Crossover gelukt.., aantal children: %d/%d", num_children, newChildren.length); 
-
-			// Test fitness van gecreerde children
-			for (int i = 0; (i < newChildren.length && evals<evaluations_limit_); i++)
-			{
-				double child[] = newChildren[i].setFenotype();
-				System.out.printf("newChildren fenotypes...%f.1, %f.1, %f.1", child[0], child[1], child[2]);
-				System.out.println();
-            			// Check fitness of unknown fuction
-            			Double fitness = (double) evaluation_.evaluate(child);
-				newChildren[i].setFitness(fitness);
-            			evals++;
-			}  
-
-            		// Select survivors - no selection (only parent selection)
-			Individual[] newPop = new Individual[NUMBER_OF_INDIVIDUALS];
-			for (int count = 0; count < newPop.length; count++)
-			{
-				if (count < newParents.length)
-					newPop[count] = newParents[count];
-				else
-					newPop[count] = newChildren[count - newParents.length];
-			} 	
-			currentPop = newPop;
-
-		}	// endwhile
-
-
-	}
-
-	// below procedures of group70
+	// hieronder staan allerlei procedures....
 
 	public static Individual[] initPopulation(int num_individuals)
 	{
@@ -121,25 +64,15 @@ public class player70 implements ContestSubmission
 		population[count].detFitness();
 	}
 
-	public static void printPop(Individual[] population)
-	{
-		System.out.println("printpop....:");
-		for ( int count = 0; count < population.length; count++)
-		{
-			System.out.printf("Individu %d: ", count);
-			population[count].displayFenotype();
-		}
-	}
+	/* 
 
 	public static Individual[] nextPopulation(Individual[] population)
 	// next population bestaat uit geselecteerde ouders (select Parents) en aangevuld met kinderen (new Children)
 	{
-		// hiere verder; number of individuals
-		int num_individuals = population.length; 
-		Individual[] newPopulation = new Individual[num_individuals];
+		Individual[] newPopulation = new TestIndividual[NUMBER_OF_INDIVIDUALS];
 		Individual[] parents = selectParents(population);
 		int numChildren = newPopulation.length - parents.length;
-		System.out.printf("nextPop...aantal pop: %d/%d, aantal parents: %d, aantal children: %d", num_individuals, newPopulation.length, parents.length, numChildren);
+		System.out.printf("nextPop...aantal pop: %d/%d, aantal parents: %d, aantal children: %d", NUMBER_OF_INDIVIDUALS, newPopulation.length, parents.length, numChildren);
 		System.out.println(); 
 		// TestIndividual[] children = createChildren( numChildren );	// ongeslachtelijk
 		Individual[] children = crossoverChildren( numChildren, parents );
@@ -213,7 +146,7 @@ public class player70 implements ContestSubmission
 		// children worden gemaakt uit parents
 	{
 		// create empty child population with right number
-		Individual[] newChildren = new Individual[numChildren];
+		Individual[] newChildren = new TestIndividual[numChildren];
 		// System.out.printf("aantalchilds: %d.", numChildren);
 		// System.out.println();
 		
@@ -228,9 +161,9 @@ public class player70 implements ContestSubmission
 				next_parent1 = 0;
 			if (next_parent2 == aantal_parents)
 				next_parent2 = 0;					
-			Individual parent1 = parents[next_parent1];
-			Individual parent2 = parents[next_parent2];
-			Individual newchild = createChild( parent1, parent2 );
+			TestIndividual parent1 = parents[next_parent1];
+			TestIndividual parent2 = parents[next_parent2];
+			TestIndividual newchild = createChild( parent1, parent2 );
 			newChildren[ count ] = newchild;
 			next_parent1 += 1;
 			next_parent2 += 1;
@@ -241,7 +174,6 @@ public class player70 implements ContestSubmission
 	public static Individual[] createChildren( int numChildren )
 		// children wordt nu willekeurig geiniteerd en 1 maal gemuteerd 
 	{	
-		final int[] genomeRange = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};  // deze eigenlijk nog globaal definieren
 		// create emtpy child-population with right number
 		Individual[] newChildren = new Individual[numChildren];
 		System.out.printf("aantalchilds: %d.", numChildren);
@@ -268,8 +200,20 @@ public class player70 implements ContestSubmission
 		int child_genome = (parent1.getGenome() + parent2.getGenome())/2+2;
 		System.out.printf("createChild...par1gen: %d, par2.gen: %d, child_genome: %d", parent1.getGenome(), parent2.getGenome(), child_genome);
 		System.out.println();
-		Individual child = new Individual(child_genome);
+		TestIndividual child = new TestIndividual(child_genome);
 		return child;
 	}
 
-}
+		// print population
+	public static void printpop(Individual[] population)
+	{
+		System.out.println("printpop....:");
+		for ( int count = 0; count < population.length; count++)
+		{
+			System.out.printf("Individu %d: ", count);
+			population[count].displayFenotype();
+		}
+	}
+
+} // end class TestPopulation
+	*/
