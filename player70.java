@@ -74,7 +74,7 @@ public class player70 implements ContestSubmission
 			int num_individuals = currentPop.length; 
 			Individual[] newParents = selectParents(currentPop);
 			int num_children = NUMBER_OF_INDIVIDUALS - newParents.length;
-			System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
+			//DEBUG System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
 			System.out.println(); 
 
             		// Apply crossover / mutation operators
@@ -102,7 +102,7 @@ public class player70 implements ContestSubmission
 			generation++;
 
 		}	// endwhile
- 		printPop(currentPop);
+ 		//DEBUG printPop(currentPop);
 
 	}	// endrun()
 
@@ -135,15 +135,19 @@ public class player70 implements ContestSubmission
 		return population; //initpop;
 	}
 
-	public static void detFitnessPop(Individual[] population)
+	public static void detFitnessPop(Individual[] population) // Waarom willen we de fitness van een populatie weten?
 	{
 		for ( int count = 0; count < population.length; count++ )
+<<<<<<< HEAD
 		{
 			Double fitness = (double) evaluation_.evaluate(population[count].getFenotype());
 			population[count].setFitness(fitness);
 			evals++; //TODO Hier wordt dus ook een evaluatie gemaakt, let op.
 
 		}
+=======
+		population[count].detFitness(); // Wordt hier iets mee gedaan?
+>>>>>>> 202a827... printfuncties eruit gecomment, wat extra opmerkingen/vragen
 	}
 
 	public static void printPop(Individual[] population)
@@ -151,7 +155,7 @@ public class player70 implements ContestSubmission
 		System.out.println("printpop....:");
 		for ( int count = 0; count < population.length; count++)
 		{
-			System.out.printf("Individu %d: ", count);
+			//DEBUG System.out.printf("Individu %d: ", count);
 			population[count].displayFenotype();
 		}
 	}
@@ -239,11 +243,18 @@ public class player70 implements ContestSubmission
 		return newChildren;
 	}
 
-	public static Individual createChild(Individual parent1, Individual parent2)
+	public static Individual createChild(Individual parent1, Individual parent2) // Dit is dus een ander soort crossover? waarom niet in de crossover functie?
 	{
+<<<<<<< HEAD
 		double[] childGenotype = recombineGenotypes(parent1.getGenotype(),parent2.getGenotype());
 		// System.out.printf("createChild...par1gen: %d, par2.gen: %d, childGenotype: %d \n", parent1.getGenotype(), parent2.getGenotype(), childGenotype);
 		Individual child = new Individual(childGenotype);
+=======
+		int child_genome = (parent1.getGenome() + parent2.getGenome())/2+2;
+		//DEBUG System.out.printf("createChild...par1gen: %d, par2.gen: %d, child_genome: %d", parent1.getGenome(), parent2.getGenome(), child_genome);
+		System.out.println();
+		Individual child = new Individual(child_genome);
+>>>>>>> 202a827... printfuncties eruit gecomment, wat extra opmerkingen/vragen
 		return child;
 	}
 
