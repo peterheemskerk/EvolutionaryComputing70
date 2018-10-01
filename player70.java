@@ -53,13 +53,20 @@ public class player70 implements ContestSubmission
         
  	       	int evals = 0;
 		int generation = 0;
-		final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
+		final int NUMBER_OF_INDIVIDUALS = 20; 				// size of population
 		final Random randomNumbers = new Random();			// random number generator
 
         	// init population
 		Individual[] currentPop = initPopulation(NUMBER_OF_INDIVIDUALS);
-        	// calculate fitness - let op dit is maar dummy berekening
-		detFitnessPop(currentPop);
+        	// calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
+		for (int i = 0; (i < currentPop.length); i++)
+		{
+			double child[] = currentPop[i].setFenotype();
+            		// Check fitness of unknown fuction
+            		Double fitness = (double) evaluation_.evaluate(child);
+			currentPop[i].setFitness(fitness);
+            		evals++;
+		}		
 
         	while(evals<evaluations_limit_){
 
@@ -72,7 +79,6 @@ public class player70 implements ContestSubmission
 
             		// Apply crossover / mutation operators
 			Individual[] newChildren = crossoverChildren( num_children, newParents );
-			// System.out.printf("Crossover gelukt.., aantal children: %d/%d", num_children, newChildren.length); 
 
 			// Test fitness van gecreerde children
 			for (int i = 0; (i < newChildren.length && evals<evaluations_limit_); i++)
@@ -109,7 +115,9 @@ public class player70 implements ContestSubmission
 		int[] genomeRange = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 		Individual[] population = new Individual[ num_individuals ];
 		for (int count = 0; count < population.length; count++ )
+		{
 			population[ count ] = new Individual( genomeRange[ count % 10 ] );
+		}
 		return population; //initpop;
 	}
 
@@ -156,8 +164,6 @@ public class player70 implements ContestSubmission
 		//  als aantal parents boven threshold = min 2, dan select die parents uit populatie
 		if (numberParents > 1)
 		{
-			// System.out.printf("selectParents...2 ouders of meer...numberParents: %d/%d", numberParents, parents.length); 
-			// System.out.println();
 			// TestIndividual[] parents = new TestIndividual[numberParents];
 			int parentcount = 0;
 			for (int count = 0; count < population.length; count++)
@@ -165,8 +171,6 @@ public class player70 implements ContestSubmission
 				double indfitness = population[count].getFitness();
 				if (indfitness > thresholdfitness)
 				{
-					// System.out.printf("selectParents...parentcount: %d, populationcount: %d", parentcount, count);
-					// System.out.println();
 					parents[parentcount] = population[count];
 					parentcount++;
 				}
@@ -189,8 +193,6 @@ public class player70 implements ContestSubmission
 	{
 		// create empty child population with right number
 		Individual[] newChildren = new Individual[numChildren];
-		// System.out.printf("aantalchilds: %d.", numChildren);
-		// System.out.println();
 		
 		// populate child-population with crossoverChildren
 		int aantal_children = newChildren.length;

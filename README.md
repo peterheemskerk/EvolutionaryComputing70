@@ -16,3 +16,8 @@ Parents worden nu geselecteerd door alle individuen met fitnes > gemiddelde te n
 Children kunnen door mutatie tot stand komen (mutatie: getal genome met 1 ophogen).
 Children kunnen ook door cross over tot stand komen (genome van kind = dat van ouders + 2) 
 
+
+Release notes :) Versie 1.1 (avond 1 oktober 18)
+- De fitness van de initiele populatie wordt nu ook bepaald door externe evaluatie 
+- Een begin gemaakt (ter illustratie) met een genotype dat gelijk is aan fenotype, dus een lijst met 10 getallen tussen -5 en 5, die bij initatie van een individu nu willekeurig wordt bepaald. 
+Dit genotype kan worden gebruikt bij mutatie en bij crossover. Dit is nog niet geimplementeerd. 
