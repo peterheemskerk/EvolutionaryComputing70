@@ -6,10 +6,12 @@ import java.util.Properties;
 
 public class player70 implements ContestSubmission
 {
-	Random rnd_;
-	ContestEvaluation evaluation_;
+	public static Random rnd_;
+	static ContestEvaluation evaluation_; //TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
     	private int evaluations_limit_;
-	private final int[] genomeRange = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};	
+	private static final double tau = 1/Math.sqrt(10); // Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
+	private static final double epsilon = 1E-6; // Machine precision
+	public static int evals = 0;
 
 	public player70()
 	{
@@ -51,7 +53,6 @@ public class player70 implements ContestSubmission
 	{
 		// Run your algorithm here
         
- 	       	int evals = 0;
 		int generation = 0;
 		final int NUMBER_OF_INDIVIDUALS = 20; 				// size of population
 		final Random randomNumbers = new Random();			// random number generator
@@ -61,9 +62,8 @@ public class player70 implements ContestSubmission
         	// calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
 		for (int i = 0; (i < currentPop.length); i++)
 		{
-			double child[] = currentPop[i].setFenotype();
             		// Check fitness of unknown fuction
-            		Double fitness = (double) evaluation_.evaluate(child);
+            		Double fitness = (double) evaluation_.evaluate(currentPop[i].getFenotype());
 			currentPop[i].setFitness(fitness);
             		evals++;
 		}		
@@ -74,18 +74,17 @@ public class player70 implements ContestSubmission
 			int num_individuals = currentPop.length; 
 			Individual[] newParents = selectParents(currentPop);
 			int num_children = NUMBER_OF_INDIVIDUALS - newParents.length;
-			System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
+			//DEBUG System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
 			System.out.println(); 
 
             		// Apply crossover / mutation operators
-			Individual[] newChildren = crossoverChildren( num_children, newParents );
+			Individual[] newChildren = createChildren( num_children, newParents );
 
 			// Test fitness van gecreerde children
 			for (int i = 0; (i < newChildren.length && evals<evaluations_limit_); i++)
 			{
-				double child[] = newChildren[i].setFenotype();
             			// Check fitness of unknown fuction
-            			Double fitness = (double) evaluation_.evaluate(child);
+            			Double fitness = (double) evaluation_.evaluate(newChildren[i].getFenotype());
 				newChildren[i].setFitness(fitness);
             			evals++;
 			}  
@@ -103,7 +102,7 @@ public class player70 implements ContestSubmission
 			generation++;
 
 		}	// endwhile
- 		printPop(currentPop);
+ 		//DEBUG printPop(currentPop);
 
 	}	// endrun()
 
@@ -112,19 +111,39 @@ public class player70 implements ContestSubmission
 
 	public static Individual[] initPopulation(int num_individuals)
 	{
-		int[] genomeRange = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 		Individual[] population = new Individual[ num_individuals ];
 		for (int count = 0; count < population.length; count++ )
 		{
-			population[ count ] = new Individual( genomeRange[ count % 10 ] );
+			double[] randomGenotype = new double[20];
+			for (int i=0;i<10;i++) // First fill in the sigmas of the random genotype
+			{
+				randomGenotype[i] = rnd_.nextDouble(); // Get a double between 0.0 and 1.0 from the random number generator
+				if (randomGenotype[i]<epsilon)
+				{
+					randomGenotype[i]=epsilon; // If sigma is smaller than machine precision, make it machine precision
+				}
+				
+			}
+
+			for (int i=10;i<20;i++) // Now fill in the "x-es" of the random genotype
+			{
+				randomGenotype[i] = rnd_.nextDouble()-0.5; // Get a double between -0.5 and 0.5 from the random number generator
+			}
+			population[ count ] = new Individual(randomGenotype);
 		}
+
 		return population; //initpop;
 	}
 
-	public static void detFitnessPop(Individual[] population)
+	public static void detFitnessPop(Individual[] population) // Waarom willen we de fitness van een populatie weten?
 	{
 		for ( int count = 0; count < population.length; count++ )
-		population[count].detFitness();
+		{
+			Double fitness = (double) evaluation_.evaluate(population[count].getFenotype());
+			population[count].setFitness(fitness);
+			evals++; //TODO Hier wordt dus ook een evaluatie gemaakt, let op.
+
+		}
 	}
 
 	public static void printPop(Individual[] population)
@@ -132,7 +151,7 @@ public class player70 implements ContestSubmission
 		System.out.println("printpop....:");
 		for ( int count = 0; count < population.length; count++)
 		{
-			System.out.printf("Individu %d: ", count);
+			//DEBUG System.out.printf("Individu %d: ", count);
 			population[count].displayFenotype();
 		}
 	}
@@ -182,24 +201,22 @@ public class player70 implements ContestSubmission
 			// TestIndividual[] parents = new TestIndividual[2];
 			parents[0] = population[0];
 			parents[1] = population[1];
-			System.out.printf("selectParents...exceptie...aantalparents: %d", parents.length);
-			System.out.println();
+			//DEBUG System.out.printf("selectParents...exceptie...aantalparents: %d", parents.length);
 		}
 		return parents;
 	} 
 
-	public static Individual[] crossoverChildren( int numChildren, Individual[] parents )
+	public static Individual[] createChildren( int numChildren, Individual[] parents )
 		// children worden gemaakt uit parents
 	{
 		// create empty child population with right number
 		Individual[] newChildren = new Individual[numChildren];
 		
-		// populate child-population with crossoverChildren
-		int aantal_children = newChildren.length;
+		// populate child-population with createChildren
 		int aantal_parents = parents.length;
 		int next_parent1 = 0;
 		int next_parent2 = 1;
-		for ( int count = 0; count < aantal_children; count++ )
+		for ( int count = 0; count < numChildren; count++ )
 		{	
 			if (next_parent1 == aantal_parents)
 				next_parent1 = 0;
@@ -207,46 +224,45 @@ public class player70 implements ContestSubmission
 				next_parent2 = 0;					
 			Individual parent1 = parents[next_parent1];
 			Individual parent2 = parents[next_parent2];
-			Individual newchild = createChild( parent1, parent2 );
-			newChildren[ count ] = newchild;
+
+			// Create a child with recombination of the two parent genomes
+			Individual newChild = createChild( parent1, parent2 );
+
+			// Perform the mutation on the child after recombination
+			newChild.setGenotype(newChild.mutGenotype(newChild.getGenotype(),tau));	
+
+			newChildren[ count ] = newChild;
 			next_parent1 += 1;
 			next_parent2 += 1;
 		}
 		return newChildren;
 	}
 
-	public static Individual[] createChildren( int numChildren )
-		// children wordt nu willekeurig geiniteerd en 1 maal gemuteerd 
-	{	
-		final int[] genomeRange = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};  // deze eigenlijk nog globaal definieren
-		// create emtpy child-population with right number
-		Individual[] newChildren = new Individual[numChildren];
-		System.out.printf("aantalchilds: %d.", numChildren);
-		System.out.println();
-
-		// populate child-population with Individual objects
-		for ( int count = 0; count < newChildren.length; count++ )
-			newChildren[ count ] = new Individual( genomeRange[ count % 10 ] );
-
-		// mutation on populated children
-		for (int count = 0; count < newChildren.length; count++)
-		{
-			System.out.println("child..voor mutatie...");
-			newChildren[count].displayFenotype();
-			newChildren[count].mutGenome();   
-			System.out.println("child..na mutatie...");
-			newChildren[count].displayFenotype();
-		}
-		return newChildren;
+	public static Individual createChild(Individual parent1, Individual parent2) // Dit is dus een ander soort crossover? waarom niet in de crossover functie?
+	{
+		double[] childGenotype = recombineGenotypes(parent1.getGenotype(),parent2.getGenotype());
+		// System.out.printf("createChild...par1gen: %d, par2.gen: %d, childGenotype: %d \n", parent1.getGenotype(), parent2.getGenotype(), childGenotype);
+		Individual child = new Individual(childGenotype);
+		return child;
 	}
 
-	public static Individual createChild(Individual parent1, Individual parent2)
+	public static double[] recombineGenotypes(double[] genotype1, double[] genotype2)
 	{
-		int child_genome = (parent1.getGenome() + parent2.getGenome())/2+2;
-		System.out.printf("createChild...par1gen: %d, par2.gen: %d, child_genome: %d", parent1.getGenome(), parent2.getGenome(), child_genome);
-		System.out.println();
-		Individual child = new Individual(child_genome);
-		return child;
+	
+		double[] childGenotype = new double[20];
+		for (int i=0;i<genotype1.length;i++)
+		{
+			if (rnd_.nextBoolean()) // Pak een random true of false, aan de hand daarvan het ene of andere genoom samplen. Wordt nu geen onderscheid tussen sigma en x gemaakt
+			{
+				childGenotype[i]=genotype1[i];	
+			}else
+			{
+				childGenotype[i]=genotype2[i];
+			}
+		}
+
+		return childGenotype;
+
 	}
 
 }

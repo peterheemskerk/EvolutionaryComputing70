@@ -1,38 +1,37 @@
 // Test voor class Individual --> Individual
 
+
+import java.lang.Math; //TODO Kijken of dit nodig is
+import java.util.Random;
+
 public class Individual
 //  Deze classe bevat een aantal zeer eenvoudige procedures. 
-//  Individu wordt bepaald door genome (een geheel getal tussen -5 en 5)
-//  De method mutGenome() muteert het genome door er 1 bij op te tellen.
+//  Individu wordt bepaald door genotype wat meegegeven wordt in de constructor
 //  De method setFenotype() berekent uit het genome het fenotype (een rij getallen tussen -0.5 en +0.5)
 //  De method getFitness() berekent nu de fitness (getal tussen 0 en 10) uit het Fenotype. 
 //         Deze moet nog gekoppeld worden aan de procedure evaluate_.evaluate(child) uit player70.java. 
 
 {
 	private int genome;
-	private double[] genotype = {0,0,0,0,0,0,0,0,0,0};
+	private double[] genotype; 
 	private double fitness;
+	private Random rand = new Random(); //TODO Is een aparte random number generator per individu okee of willen we een centrale gebruiken?
+	private static final double epsilon = 1E-6; //TODO Machine precision epsilon, om sigma niet nul te laten worden. Eens met deze waarde?
+	private double[] domainFunction = {-5,5};
 
-	public Individual( Integer indGenome )
-	{	// constructor initializes individual genome - versie 1.1 nu wordt genotype gebruikt (gelijk aan fenotype), dat willekeurig wordt geinitieerd. (maar mutatie en cross over nog niet aangepast)
-		genome = indGenome; // initialize
-		for (int i=0; i<genotype.length; i++)
-		{
-			genotype[i]=10*(Math.random()-0.5);
-		}
+	public Individual(double[] genotype)
+	{	// constructor initializes individual genotype
+		this.setGenotype(genotype);
 	} 
 
-	public double[] setFenotype()
-	{	// nieuw in versie 1.1 - fenotype = genotype
-		double fenotype[] = genotype; 
-		return fenotype;
-	}
-
-	public double[] setFenotype_genome()
-	{	// deze procedure wordt niet meer gebruikt
-		double fenotype[] = {-0.5,-0.4,-0.3,-0.2,-0.1,0.0,0.1,0.2,0.3,0.4};
-		for(int i=0; i < fenotype.length; i++)
-			fenotype[i]=fenotype[i]*genome;
+	
+	public double[] mapGenoToFeno(double[] genotype) //TODO Ik maak me bij dit soort dubbele naamgeving (de input heet hetzelfde als de private variabele hierboven) altijd een beetje zorgen, gaat dat hier goed?
+	{
+		double[] fenotype = new double[10]; //TODO Eigenlijk is het "phenotype" in het engels, niet "fenotype", zullen we toch maar de f aanhouden?
+		for (int i=0;i<10;i++)
+		{
+			fenotype[i]=genotype[i+10];
+		}
 		return fenotype;
 	}
 
@@ -41,45 +40,58 @@ public class Individual
 		return genotype;
 	}
 
-	public void setGenome()
-	{	//   deze functie wordt niet meer gebruikt. 
-		genome = 3;
-	}
-
-	public int getGenome()
+	public void setGenotype(double[] newGenotype)
 	{
-		return genome;
+		genotype = newGenotype;
 	}
-
-	public void mutGenome()
-	{	// deze functie niet meer gebruiken, nu gebruiken mutGenotype()
-		if ( genome < 5 )
-			genome =+1;
-		else
-			genome = -5;
-	}
-
-	public void mutGenotype()
-	{	// versie 1.1 - gebeurt niets, deze functie aanpassen met mutatie van N(0, sigma)
-	}
-
-	public Individual createChild_old(Individual parent1, Individual parent2)
-	{
-		int child_genome = (parent1.getGenome() + parent2.getGenome())/2;
-		Individual child = new Individual(child_genome);
-		return child;
-	}
-
-	public void detFitness()
-	{	
-		fitness = 10;
-		double fenotype[] = setFenotype();
-		for (int i=0; i<fenotype.length; i++)
-			fitness += 2*fenotype[i];
-		// vervangen door:
-	        // Double fitness = (double) evaluation_.evaluate(child);
 	
+	public double[] getFenotype()
+	{
+		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
 	}
+
+	public double[] mutGenotype(double[] oldGenotype, double tau)
+	{	
+		
+		double[] newGenotype = new double[20];
+		double candidateSigma;
+		
+		// Eerst de sigma's muteren (de eerste 10 elementen)
+		for (int geneIndex=0;geneIndex<10;geneIndex++)
+		{
+			candidateSigma = oldGenotype[geneIndex]+Math.pow(Math.E,tau*rand.nextGaussian());
+			
+			// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
+			if (candidateSigma < epsilon){
+			candidateSigma = epsilon;
+			}
+
+			// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
+			newGenotype[geneIndex] = candidateSigma;
+		} 
+
+		// Nu de x-waardes zelf (de laatste 10 elementen)
+		for (int geneIndex=10;geneIndex<20;geneIndex++)
+		{
+			double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
+			
+			//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
+			if (candidateX < domainFunction[0])
+			{
+				candidateX = domainFunction[0];
+			}else if (candidateX >domainFunction[1])
+			{
+				candidateX = domainFunction[1];
+			}
+			
+			// De aangepaste kandidaat voor X in het nieuwe genotype zetten
+			newGenotype[geneIndex] = candidateX;
+			
+		}
+
+		return newGenotype;
+	}
+
 
 	public void setFitness( double newfitness )
 	{	
@@ -93,18 +105,6 @@ public class Individual
 	
 	public void displayFenotype()	
 	{
-		System.out.printf("Genome: %d", genome);
-		System.out.println();
-		System.out.printf("Genotype: ");
-		for (int i=0; i<genotype.length; i++)
-			System.out.printf( "- %.1f ", genotype[ i ]);
-		System.out.println();
-		System.out.print("Fenotype ");
-		double[] fenotype = setFenotype();
-		for ( int counter = 0; counter < fenotype.length; counter++ )
-			System.out.printf( "- %.1f ", fenotype[ counter ] ); 
-		System.out.println();
-		System.out.printf("Fitness: %.1f", fitness);
-		System.out.println();
+
 	}
 }
