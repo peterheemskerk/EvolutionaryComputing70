@@ -44,8 +44,13 @@ public class Individual
 	{
 		genotype = newGenotype;
 	}
+	
+	public double[] getFenotype()
+	{
+		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
+	}
 
-	public void mutGenotype(double[] oldGenotype, double tau)
+	public void mutGenotype(double[] oldGenotype, double tau)https://www.youtube.com/watch?v=Celeq0ZOMjs
 	{	
 		
 		private double[] newGenotype = new double[20];
