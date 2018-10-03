@@ -105,30 +105,6 @@ public class Individual
 	
 	public void displayFenotype()	
 	{
-<<<<<<< HEAD
-		System.out.printf("Genotype: ");
-		for (int i=0; i<genotype.length; i++)
-			System.out.printf( "- %.1f ", genotype[ i ]);
-		System.out.println();
-		System.out.print("Fenotype ");
-		double[] fenotype = getFenotype();
-		for ( int counter = 0; counter < fenotype.length; counter++ )
-			System.out.printf( "- %.1f ", fenotype[ counter ] ); 
-		System.out.println();
-		System.out.printf("Fitness: %.1f", fitness);
-		System.out.println();
-=======
-		// System.out.printf("Genome: %d", genome);
-		// System.out.println();
-		// System.out.print("Fenotype ");
-		double[] fenotype = setFenotype();
-		for ( int counter = 0; counter < fenotype.length; counter++ ){ //Dit haakje miste volgens mij sowieso
-			// System.out.printf( "%d: %f\n", counter, fenotype[ counter ] ); 
-			// System.out.printf( "- %.1f ", fenotype[ counter ] ); 
-		// System.out.println();
-		// System.out.printf("Fitness: %.1f", fitness);
-		// System.out.println();
-		}
->>>>>>> 202a827... printfuncties eruit gecomment, wat extra opmerkingen/vragen
+
 	}
 }
