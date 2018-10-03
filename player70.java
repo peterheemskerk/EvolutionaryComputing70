@@ -6,10 +6,12 @@ import java.util.Properties;
 
 public class player70 implements ContestSubmission
 {
-	Random rnd_;
-	ContestEvaluation evaluation_;
+	public static Random rnd_;
+	static ContestEvaluation evaluation_; //TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
     	private int evaluations_limit_;
 	private static final double tau = 1/Math.sqrt(10); // Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
+	private static final double epsilon = 1E-6; // Machine precision
+	public static int evals = 0;
 
 	public player70()
 	{
@@ -51,7 +53,6 @@ public class player70 implements ContestSubmission
 	{
 		// Run your algorithm here
         
- 	       	int evals = 0;
 		int generation = 0;
 		final int NUMBER_OF_INDIVIDUALS = 20; 				// size of population
 		final Random randomNumbers = new Random();			// random number generator
@@ -61,9 +62,8 @@ public class player70 implements ContestSubmission
         	// calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
 		for (int i = 0; (i < currentPop.length); i++)
 		{
-			double child[] = currentPop[i].setFenotype();
             		// Check fitness of unknown fuction
-            		Double fitness = (double) evaluation_.evaluate(child);
+            		Double fitness = (double) evaluation_.evaluate(currentPop[i].getFenotype());
 			currentPop[i].setFitness(fitness);
             		evals++;
 		}		
@@ -84,7 +84,7 @@ public class player70 implements ContestSubmission
 			for (int i = 0; (i < newChildren.length && evals<evaluations_limit_); i++)
 			{
             			// Check fitness of unknown fuction
-            			double fitness = (double) evaluation_.evaluate(newChildren[i].getFenotype());
+            			Double fitness = (double) evaluation_.evaluate(newChildren[i].getFenotype());
 				newChildren[i].setFitness(fitness);
             			evals++;
 			}  
@@ -114,15 +114,36 @@ public class player70 implements ContestSubmission
 		Individual[] population = new Individual[ num_individuals ];
 		for (int count = 0; count < population.length; count++ )
 		{
-			population[ count ] = new Individual( genomeRange[ count % 10 ] );
+			double[] randomGenotype = new double[20];
+			for (int i=0;i<10;i++) // First fill in the sigmas of the random genotype
+			{
+				randomGenotype[i] = rnd_.nextDouble(); // Get a double between 0.0 and 1.0 from the random number generator
+				if (randomGenotype[i]<epsilon)
+				{
+					randomGenotype[i]=epsilon; // If sigma is smaller than machine precision, make it machine precision
+				}
+				
+			}
+
+			for (int i=10;i<20;i++) // Now fill in the "x-es" of the random genotype
+			{
+				randomGenotype[i] = rnd_.nextDouble()-0.5; // Get a double between -0.5 and 0.5 from the random number generator
+			}
+			population[ count ] = new Individual(randomGenotype);
 		}
+
 		return population; //initpop;
 	}
 
 	public static void detFitnessPop(Individual[] population)
 	{
 		for ( int count = 0; count < population.length; count++ )
-		population[count].detFitness();
+		{
+			Double fitness = (double) evaluation_.evaluate(population[count].getFenotype());
+			population[count].setFitness(fitness);
+			evals++; //TODO Hier wordt dus ook een evaluatie gemaakt, let op.
+
+		}
 	}
 
 	public static void printPop(Individual[] population)
@@ -206,12 +227,12 @@ public class player70 implements ContestSubmission
 			Individual parent2 = parents[next_parent2];
 
 			// Create a child with recombination of the two parent genomes
-			Individual newchild = createChild( parent1, parent2 );
+			Individual newChild = createChild( parent1, parent2 );
 
 			// Perform the mutation on the child after recombination
-			newChild.setGenotype(newChild.mutGenotype(newChild.getGenotype,tau));	
+			newChild.setGenotype(newChild.mutGenotype(newChild.getGenotype(),tau));	
 
-			newChildren[ count ] = newchild;
+			newChildren[ count ] = newChild;
 			next_parent1 += 1;
 			next_parent2 += 1;
 		}
@@ -220,28 +241,28 @@ public class player70 implements ContestSubmission
 
 	public static Individual createChild(Individual parent1, Individual parent2)
 	{
-		int child_genome = recombineGenomes(parent1.getGenome(),parent2.getGenome();
-		System.out.printf("createChild...par1gen: %d, par2.gen: %d, child_genome: %d \n", parent1.getGenome(), parent2.getGenome(), child_genome);
-		Individual child = new Individual(child_genome);
+		double[] childGenotype = recombineGenotypes(parent1.getGenotype(),parent2.getGenotype());
+		// System.out.printf("createChild...par1gen: %d, par2.gen: %d, childGenotype: %d \n", parent1.getGenotype(), parent2.getGenotype(), childGenotype);
+		Individual child = new Individual(childGenotype);
 		return child;
 	}
 
-	public static double[] recombineGenomes(double[] genome1, double[] genome2)
+	public static double[] recombineGenotypes(double[] genotype1, double[] genotype2)
 	{
 	
-		private double[] childGenome = new double[20];
-		for (i=0;i<genome1.length;i++)
+		double[] childGenotype = new double[20];
+		for (int i=0;i<genotype1.length;i++)
 		{
 			if (rnd_.nextBoolean()) // Pak een random true of false, aan de hand daarvan het ene of andere genoom samplen. Wordt nu geen onderscheid tussen sigma en x gemaakt
 			{
-				childGenome[i]=genome1[i];	
+				childGenotype[i]=genotype1[i];	
 			}else
 			{
-				childGenome[i]=genome2[i];
+				childGenotype[i]=genotype2[i];
 			}
 		}
 
-		return childGenome;
+		return childGenotype;
 
 	}
 

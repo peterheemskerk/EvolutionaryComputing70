@@ -17,7 +17,7 @@ public class Individual
 	private double fitness;
 	private Random rand = new Random(); //TODO Is een aparte random number generator per individu okee of willen we een centrale gebruiken?
 	private static final double epsilon = 1E-6; //TODO Machine precision epsilon, om sigma niet nul te laten worden. Eens met deze waarde?
-	private double[] domainFunction = [-5 5];
+	private double[] domainFunction = {-5,5};
 
 	public Individual(double[] genotype)
 	{	// constructor initializes individual genotype
@@ -50,14 +50,14 @@ public class Individual
 		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
 	}
 
-	public void mutGenotype(double[] oldGenotype, double tau)https://www.youtube.com/watch?v=Celeq0ZOMjs
+	public double[] mutGenotype(double[] oldGenotype, double tau)
 	{	
 		
-		private double[] newGenotype = new double[20];
-		private double candidateSigma;
+		double[] newGenotype = new double[20];
+		double candidateSigma;
 		
 		// Eerst de sigma's muteren (de eerste 10 elementen)
-		for (geneIndex=0;geneIndex<10,geneIndex++)
+		for (int geneIndex=0;geneIndex<10;geneIndex++)
 		{
 			candidateSigma = oldGenotype[geneIndex]+Math.pow(Math.E,tau*rand.nextGaussian());
 			
@@ -71,9 +71,9 @@ public class Individual
 		} 
 
 		// Nu de x-waardes zelf (de laatste 10 elementen)
-		for (geneIndex=10;geneIndex<20,geneIndex++)
+		for (int geneIndex=10;geneIndex<20;geneIndex++)
 		{
-			candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
+			double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
 			
 			//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
 			if (candidateX < domainFunction[0])
@@ -89,21 +89,9 @@ public class Individual
 			
 		}
 
-		this.setGenotype(newGenotype);
-
+		return newGenotype;
 	}
 
-
-	public void detFitness()
-	{	
-		fitness = 10;
-		double fenotype[] = setFenotype();
-		for (int i=0; i<fenotype.length; i++)
-			fitness += 2*fenotype[i];
-		// vervangen door:
-	        // Double fitness = (double) evaluation_.evaluate(child);
-	
-	}
 
 	public void setFitness( double newfitness )
 	{	
@@ -117,14 +105,12 @@ public class Individual
 	
 	public void displayFenotype()	
 	{
-		System.out.printf("Genome: %d", genome);
-		System.out.println();
 		System.out.printf("Genotype: ");
 		for (int i=0; i<genotype.length; i++)
 			System.out.printf( "- %.1f ", genotype[ i ]);
 		System.out.println();
 		System.out.print("Fenotype ");
-		double[] fenotype = setFenotype();
+		double[] fenotype = getFenotype();
 		for ( int counter = 0; counter < fenotype.length; counter++ )
 			System.out.printf( "- %.1f ", fenotype[ counter ] ); 
 		System.out.println();
