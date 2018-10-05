@@ -3,6 +3,8 @@
 
 import java.lang.Math; //TODO Kijken of dit nodig is
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
 
 public class Individual
 //  Deze classe bevat een aantal zeer eenvoudige procedures. 
@@ -28,9 +30,9 @@ public class Individual
 	public double[] mapGenoToFeno(double[] genotype) //TODO Ik maak me bij dit soort dubbele naamgeving (de input heet hetzelfde als de private variabele hierboven) altijd een beetje zorgen, gaat dat hier goed?
 	{
 		double[] fenotype = new double[10]; //TODO Eigenlijk is het "phenotype" in het engels, niet "fenotype", zullen we toch maar de f aanhouden?
-		for (int i=0;i<10;i++)
+		for (int i = 0; i < 10; i++)
 		{
-			fenotype[i]=genotype[i+10];
+			fenotype[i] = genotype[i + 10];
 		}
 		return fenotype;
 	}
@@ -50,46 +52,69 @@ public class Individual
 		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
 	}
 
-	public double[] mutGenotype(double[] oldGenotype, double tau)
+	public void mutGenotype(double[] oldGenotype)
 	{	
 		
 		double[] newGenotype = new double[20];
-		double candidateSigma;
-		
-		// Eerst de sigma's muteren (de eerste 10 elementen)
-		for (int geneIndex=0;geneIndex<10;geneIndex++)
-		{
-			candidateSigma = oldGenotype[geneIndex]+Math.pow(Math.E,tau*rand.nextGaussian());
-			
-			// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
-			if (candidateSigma < epsilon){
-			candidateSigma = epsilon;
-			}
 
-			// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
-			newGenotype[geneIndex] = candidateSigma;
-		} 
+		int first_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
+		int second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
 
-		// Nu de x-waardes zelf (de laatste 10 elementen)
-		for (int geneIndex=10;geneIndex<20;geneIndex++)
-		{
-			double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
-			
-			//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
-			if (candidateX < domainFunction[0])
-			{
-				candidateX = domainFunction[0];
-			}else if (candidateX >domainFunction[1])
-			{
-				candidateX = domainFunction[1];
-			}
-			
-			// De aangepaste kandidaat voor X in het nieuwe genotype zetten
-			newGenotype[geneIndex] = candidateX;
-			
+		while (first_gene_int == second_gene_int) {
+			second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
 		}
 
-		return newGenotype;
+		for (int i = 0; i < 20; i++) {
+			if (i != first_gene_int && i != second_gene_int) {
+				newGenotype[i] = oldGenotype[i];
+			}
+			else if (i == first_gene_int) {
+				newGenotype[i] = oldGenotype[second_gene_int];
+			}
+			else {
+				newGenotype[i] = oldGenotype[first_gene_int];
+			}
+		}
+
+
+
+		// double candidateSigma;
+		
+		// // Eerst de sigma's muteren (de eerste 10 elementen)
+		// for (int geneIndex=0;geneIndex<10;geneIndex++)
+		// {
+		// 	candidateSigma = oldGenotype[geneIndex]+Math.pow(Math.E,tau*rand.nextGaussian());
+			
+		// 	// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
+		// 	if (candidateSigma < epsilon){
+		// 	candidateSigma = epsilon;
+		// 	}
+
+		// 	// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
+		// 	newGenotype[geneIndex] = candidateSigma;
+		// } 
+
+		// // Nu de x-waardes zelf (de laatste 10 elementen)
+		// for (int geneIndex=10;geneIndex<20;geneIndex++)
+		// {
+		// 	double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
+			
+		// 	//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
+		// 	if (candidateX < domainFunction[0])
+		// 	{
+		// 		candidateX = domainFunction[0];
+		// 	}else if (candidateX >domainFunction[1])
+		// 	{
+		// 		candidateX = domainFunction[1];
+		// 	}
+			
+			// De aangepaste kandidaat voor X in het nieuwe genotype zetten
+			// newGenotype[geneIndex] = candidateX;
+			
+		// }
+		genotype = newGenotype;
+
+		// return newGenotype;
 	}
 
 

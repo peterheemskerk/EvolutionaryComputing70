@@ -1,5 +1,10 @@
 import org.vu.contest.ContestSubmission;
 import org.vu.contest.ContestEvaluation;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.Arrays;
+import java.util.Collections;
+// import org.apache.commons.lang.ArrayUtils;
+
 
 import java.util.Random;
 import java.util.Properties;
@@ -52,53 +57,45 @@ public class player70 implements ContestSubmission
 	public void run()
 	{
 		// Run your algorithm here
-        
 		int generation = 0;
-		final int NUMBER_OF_INDIVIDUALS = 20; 				// size of population
+		final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
+		final int GENERATION_LIMIT = 10000;
+		final int CHILDREN_PER_GENERATION = 20;
 		final Random randomNumbers = new Random();			// random number generator
 
-        	// init population
+        // init population
 		Individual[] currentPop = initPopulation(NUMBER_OF_INDIVIDUALS);
-        	// calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
-		for (int i = 0; (i < currentPop.length); i++)
+        // calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
+		for (int i = 0; i < currentPop.length; i++)
 		{
-            		// Check fitness of unknown fuction
-            		Double fitness = (double) evaluation_.evaluate(currentPop[i].getFenotype());
+    		// Check fitness of unknown fuction
+    		Double fitness = (double) evaluation_.evaluate(currentPop[i].getFenotype());
 			currentPop[i].setFitness(fitness);
-            		evals++;
+            evals++;
 		}		
 
-        	while(evals<evaluations_limit_){
+        while(evals<evaluations_limit_ && generation < GENERATION_LIMIT){
 
-            		// Select parents		
+            // Select parents		
 			int num_individuals = currentPop.length; 
 			Individual[] newParents = selectParents(currentPop);
-			int num_children = NUMBER_OF_INDIVIDUALS - newParents.length;
+			int num_children = CHILDREN_PER_GENERATION;
 			//DEBUG System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
-			System.out.println(); 
 
-            		// Apply crossover / mutation operators
-			Individual[] newChildren = createChildren( num_children, newParents );
+            // Apply crossover / mutation operators
+			Individual[] newChildren = createChildren(num_children, newParents);
 
 			// Test fitness van gecreerde children
 			for (int i = 0; (i < newChildren.length && evals<evaluations_limit_); i++)
 			{
-            			// Check fitness of unknown fuction
-            			Double fitness = (double) evaluation_.evaluate(newChildren[i].getFenotype());
+    			// Check fitness of unknown fuction
+    			Double fitness = (double) evaluation_.evaluate(newChildren[i].getFenotype());
 				newChildren[i].setFitness(fitness);
-            			evals++;
+    			evals++;
 			}  
-
-            		// Select survivors - no selection (only parent selection)
-			Individual[] newPop = new Individual[NUMBER_OF_INDIVIDUALS];
-			for (int count = 0; count < newPop.length; count++)
-			{
-				if (count < newParents.length)
-					newPop[count] = newParents[count];
-				else
-					newPop[count] = newChildren[count - newParents.length];
-			} 	
+			Individual[] newPop = selectSurvivors(currentPop, newChildren);	
 			currentPop = newPop;
+			System.out.println("DIT WAS GENERATIE: " + generation);
 			generation++;
 
 		}	// endwhile
@@ -115,7 +112,7 @@ public class player70 implements ContestSubmission
 		for (int count = 0; count < population.length; count++ )
 		{
 			double[] randomGenotype = new double[20];
-			for (int i=0;i<10;i++) // First fill in the sigmas of the random genotype
+			for (int i = 0; i < 10; i++) // First fill in the sigmas of the random genotype
 			{
 				randomGenotype[i] = rnd_.nextDouble(); // Get a double between 0.0 and 1.0 from the random number generator
 				if (randomGenotype[i]<epsilon)
@@ -125,9 +122,12 @@ public class player70 implements ContestSubmission
 				
 			}
 
-			for (int i=10;i<20;i++) // Now fill in the "x-es" of the random genotype
+			for (int i = 10; i < 20; i++) // Now fill in the "x-es" of the random genotype
 			{
-				randomGenotype[i] = rnd_.nextDouble()-0.5; // Get a double between -0.5 and 0.5 from the random number generator
+				double min = -5;
+				double max = 5;
+				randomGenotype[i] = min + Math.random() * (max - min);
+				// randomGenotype[i] = rnd_.nextDouble()-0.5; // Get a double between -0.5 and 0.5 from the random number generator
 			}
 			population[ count ] = new Individual(randomGenotype);
 		}
@@ -158,50 +158,35 @@ public class player70 implements ContestSubmission
 
 	public static Individual[] selectParents( Individual[] population )
 	{	// select parents with fitness larger than average fitness
-		double minfitness = population[0].getFitness();
-		double maxfitness = population[0].getFitness();
-		for (int count = 0; count < population.length; count++ )
-		{
-			double indfitness = population[count].getFitness(); 
-			if (indfitness > maxfitness)
-				maxfitness = indfitness;
-			if (indfitness < minfitness)
-				minfitness = indfitness;
-		}
-		double thresholdfitness = (minfitness + maxfitness)/2;
-		int numberParents = 0;
-		for (int count = 0;count < population.length;count++ )
-		{
-			double indfitness = population[count].getFitness();
-			if (indfitness > thresholdfitness)
-				numberParents++;
-		}
-		// System.out.printf("selectParents...Threshold: %.1f, aantalparents: %d ", thresholdfitness, numberParents);
-		// System.out.println();
-		int aantalOuders = Math.max(2, numberParents);
-		Individual[] parents = new Individual[aantalOuders];
-		//  als aantal parents boven threshold = min 2, dan select die parents uit populatie
-		if (numberParents > 1)
-		{
-			// TestIndividual[] parents = new TestIndividual[numberParents];
-			int parentcount = 0;
-			for (int count = 0; count < population.length; count++)
-			{
-				double indfitness = population[count].getFitness();
-				if (indfitness > thresholdfitness)
-				{
-					parents[parentcount] = population[count];
-					parentcount++;
+
+		int num_of_parents = 40;
+		Individual[] parents = new Individual[num_of_parents];
+
+		for (int parent = 0; parent < num_of_parents; parent++) {
+			Individual[] tournament;
+			double max_fitness = 0.0;
+			double second_max_fitness = 0.0;
+			double[] best_genes = {};
+			double[] second_best_genes = {};
+
+			for (int i = 0; i < num_of_parents; i++) {
+				int random_int = ThreadLocalRandom.current().nextInt(0, 100);
+				if (population[random_int].getFitness() > max_fitness) {
+					max_fitness = population[random_int].getFitness();
+					best_genes = population[random_int].getGenotype();
+
+				}
+				if (population[random_int].getFitness() < max_fitness && population[random_int].getFitness() > second_max_fitness) {
+					second_max_fitness = population[random_int].getFitness();
+					second_best_genes = population[random_int].getGenotype();
 				}
 			}
-		}
-		// als slechts 0 of 1 ouder boven threshold, pak dan gewoon de eerste twee uit populatie
-		else
-		{
-			// TestIndividual[] parents = new TestIndividual[2];
-			parents[0] = population[0];
-			parents[1] = population[1];
-			//DEBUG System.out.printf("selectParents...exceptie...aantalparents: %d", parents.length);
+
+			parents[parent] = new Individual(best_genes);
+			parent++;
+			parents[parent] = new Individual(second_best_genes);
+
+
 		}
 		return parents;
 	} 
@@ -212,57 +197,79 @@ public class player70 implements ContestSubmission
 		// create empty child population with right number
 		Individual[] newChildren = new Individual[numChildren];
 		
-		// populate child-population with createChildren
-		int aantal_parents = parents.length;
-		int next_parent1 = 0;
-		int next_parent2 = 1;
+		int parentcount = 0;
 		for ( int count = 0; count < numChildren; count++ )
-		{	
-			if (next_parent1 == aantal_parents)
-				next_parent1 = 0;
-			if (next_parent2 == aantal_parents)
-				next_parent2 = 0;					
-			Individual parent1 = parents[next_parent1];
-			Individual parent2 = parents[next_parent2];
+		{			
+			Individual parent1 = parents[count];
+			parentcount++;
+			Individual parent2 = parents[count];
+			parentcount++;
 
-			// Create a child with recombination of the two parent genomes
-			Individual newChild = createChild( parent1, parent2 );
+			double[] childGenome = recombineGenotypes(parent1.getGenotype(), parent2.getGenotype());
+			Individual newChild = new Individual(childGenome);
 
-			// Perform the mutation on the child after recombination
-			newChild.setGenotype(newChild.mutGenotype(newChild.getGenotype(),tau));	
+			// Perform the mutation on the child after recombination (random swap)
+			newChild.mutGenotype(newChild.getGenotype());	
 
-			newChildren[ count ] = newChild;
-			next_parent1 += 1;
-			next_parent2 += 1;
+			newChildren[count] = newChild;
 		}
 		return newChildren;
 	}
 
-	public static Individual createChild(Individual parent1, Individual parent2) // Dit is dus een ander soort crossover? waarom niet in de crossover functie?
-	{
-		double[] childGenotype = recombineGenotypes(parent1.getGenotype(),parent2.getGenotype());
-		// System.out.printf("createChild...par1gen: %d, par2.gen: %d, childGenotype: %d \n", parent1.getGenotype(), parent2.getGenotype(), childGenotype);
-		Individual child = new Individual(childGenotype);
-		return child;
-	}
-
 	public static double[] recombineGenotypes(double[] genotype1, double[] genotype2)
 	{
-	
 		double[] childGenotype = new double[20];
-		for (int i=0;i<genotype1.length;i++)
+		for (int i = 0; i < genotype1.length; i++)
 		{
+			// commented: als we gemiddelde nemen van allebei de ouders
+			// childGenotype[i] = (genotype1[i] + genotype2[i])/2;
 			if (rnd_.nextBoolean()) // Pak een random true of false, aan de hand daarvan het ene of andere genoom samplen. Wordt nu geen onderscheid tussen sigma en x gemaakt
 			{
-				childGenotype[i]=genotype1[i];	
-			}else
+				childGenotype[i] = genotype1[i];	
+			}
+			else
 			{
-				childGenotype[i]=genotype2[i];
+				childGenotype[i] = genotype2[i];
+			}
+		}
+		return childGenotype;
+	}
+
+	public static Individual[] selectSurvivors(Individual[] parentPop, Individual[] childrenPop) 
+	{
+		double[] fitnesslist = new double[120];
+		int NUMBER_OF_INDIVIDUALS = 100;
+		Individual[] newPop = new Individual[NUMBER_OF_INDIVIDUALS];
+
+		for (int i = 0; i < (parentPop.length + childrenPop.length); i++) {
+			if (i < childrenPop.length) {
+				fitnesslist[i] = childrenPop[i].getFitness();
+			}
+			else {
+				fitnesslist[i] = parentPop[i - childrenPop.length].getFitness();
 			}
 		}
 
-		return childGenotype;
+		Arrays.sort(fitnesslist);
 
+		for (int i = 0; i < 100; i++) {
+			double searchedfitness = fitnesslist[i + 20];
+			for (int j = 0; j < 120; j++) {
+				if (j < childrenPop.length) {
+					if (childrenPop[j].getFitness() == searchedfitness) {
+						newPop[i] = new Individual(childrenPop[j].getGenotype());
+						newPop[i].setFitness(childrenPop[j].getFitness());
+					}
+				}
+				else {
+					if (parentPop[j - 20].getFitness() == searchedfitness) {
+						newPop[i] = new Individual(parentPop[j - 20].getGenotype());
+						newPop[i].setFitness(parentPop[j - 20].getFitness());
+					}
+				}
+			}
+		}
+
+		return newPop;
 	}
-
 }
