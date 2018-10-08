@@ -205,11 +205,15 @@ public class player70 implements ContestSubmission
 			Individual parent2 = parents[count];
 			parentcount++;
 
-			double[] childGenome = recombineGenotypes(parent1.getGenotype(), parent2.getGenotype());
+			double[] geno1 = parent1.getGenotype();
+			double[] geno2 = parent2.getGenotype();
+
+			double[] childGenome = recombineGenotypes(geno1, geno2);
 			Individual newChild = new Individual(childGenome);
+			double[] genoChild = newChild.getGenotype();
 
 			// Perform the mutation on the child after recombination (random swap)
-			newChild.mutGenotype(newChild.getGenotype());	
+			newChild.mutGenotype(genoChild,tau);
 
 			newChildren[count] = newChild;
 		}
