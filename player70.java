@@ -2,6 +2,7 @@ import org.vu.contest.ContestSubmission;
 import org.vu.contest.ContestEvaluation;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.Arrays;
+import java.text.DecimalFormat;
 import java.util.Collections;
 // import org.apache.commons.lang.ArrayUtils;
 
@@ -13,7 +14,7 @@ public class player70 implements ContestSubmission
 {
 	public static Random rnd_;
 	static ContestEvaluation evaluation_; //TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
-    	private int evaluations_limit_;
+	private int evaluations_limit_;
 	private static final double tau = 1/Math.sqrt(10); // Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
 	private static final double epsilon = 1E-6; // Machine precision
 	public static int evals = 0;
@@ -95,7 +96,9 @@ public class player70 implements ContestSubmission
 			}  
 			Individual[] newPop = selectSurvivors(currentPop, newChildren);	
 			currentPop = newPop;
-			System.out.println("DIT WAS GENERATIE: " + generation);
+			System.out.print("DIT WAS GENERATIE: ");
+			System.out.print(generation);
+			System.out.print("\n");
 			generation++;
 
 		}	// endwhile
@@ -199,17 +202,34 @@ public class player70 implements ContestSubmission
 		
 		int parentcount = 0;
 		for ( int count = 0; count < numChildren; count++ )
-		{			
-			Individual parent1 = parents[count];
+		{
+			Individual parent1 = parents[parentcount];
 			parentcount++;
-			Individual parent2 = parents[count];
+			Individual parent2 = parents[parentcount];
 			parentcount++;
 
-			double[] childGenome = recombineGenotypes(parent1.getGenotype(), parent2.getGenotype());
+			double[] geno1 = parent1.getGenotype();
+			double[] geno2 = parent2.getGenotype();
+
+			double[] childGenome = recombineGenotypes(geno1, geno2);
 			Individual newChild = new Individual(childGenome);
+			double[] genoChild = newChild.getGenotype();
+
+			float[] genoShort = new float[20];
+
+			// Alle doubles naar float casten zodat ik beter kan zien aan de output wat er gebeurt
+			for (int ii=0;ii<20;ii++){
+
+				genoShort[ii] = (float) genoChild[ii];
+
+			}
+
+			System.out.print("Genome of new child: ");
+			System.out.println(Arrays.toString(genoShort));
+
 
 			// Perform the mutation on the child after recombination (random swap)
-			newChild.mutGenotype(newChild.getGenotype());	
+			newChild.mutGenotype(genoChild,tau);
 
 			newChildren[count] = newChild;
 		}
@@ -225,7 +245,7 @@ public class player70 implements ContestSubmission
 			// childGenotype[i] = (genotype1[i] + genotype2[i])/2;
 			if (rnd_.nextBoolean()) // Pak een random true of false, aan de hand daarvan het ene of andere genoom samplen. Wordt nu geen onderscheid tussen sigma en x gemaakt
 			{
-				childGenotype[i] = genotype1[i];	
+				childGenotype[i] = genotype1[i];
 			}
 			else
 			{
@@ -272,4 +292,6 @@ public class player70 implements ContestSubmission
 
 		return newPop;
 	}
+
+
 }
