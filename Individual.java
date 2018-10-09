@@ -52,7 +52,7 @@ public class Individual
 		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
 	}
 
-	public double[] mutGenotype(double[] oldGenotype,double tau)
+	public void mutGenotype(double[] oldGenotype,double tau)
 	{
 		double[] newGenotype = new double[20];
 		/*
@@ -113,9 +113,9 @@ public class Individual
 		// newGenotype[geneIndex] = candidateX;
 			
 		}
-		genotype = newGenotype;
+		this.setGenotype(newGenotype);
 
-		return newGenotype;
+
 	}
 
 
