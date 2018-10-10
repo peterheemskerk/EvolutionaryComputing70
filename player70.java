@@ -95,7 +95,8 @@ public class player70 implements ContestSubmission
 			}  
 			Individual[] newPop = selectSurvivors(currentPop, newChildren);	
 			currentPop = newPop;
-			System.out.println("DIT WAS GENERATIE: " + generation);
+			System.out.print("DIT WAS GENERATIE: ");
+			System.out.println(generation);
 			generation++;
 
 		}	// endwhile
@@ -200,9 +201,9 @@ public class player70 implements ContestSubmission
 		int parentcount = 0;
 		for ( int count = 0; count < numChildren; count++ )
 		{			
-			Individual parent1 = parents[count];
+			Individual parent1 = parents[parentcount];
 			parentcount++;
-			Individual parent2 = parents[count];
+			Individual parent2 = parents[parentcount];
 			parentcount++;
 
 			double[] childGenome = recombineGenotypes(parent1.getGenotype(), parent2.getGenotype());
