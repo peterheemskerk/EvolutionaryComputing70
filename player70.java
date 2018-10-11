@@ -64,6 +64,7 @@ public class player70 implements ContestSubmission
 		final Random randomNumbers = new Random();			// random number generator
 
         // init population
+		System.out.printf("hallo ben op branch");
 		Individual[] currentPop = initPopulation(NUMBER_OF_INDIVIDUALS);
         // calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
 		for (int i = 0; i < currentPop.length; i++)
