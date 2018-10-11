@@ -21,6 +21,13 @@ public class Individual
 	private static final double epsilon = 1E-6; //TODO Machine precision epsilon, om sigma niet nul te laten worden. Eens met deze waarde?
 	private double[] domainFunction = {-5,5};
 
+	public Individual() // Overloaded constructor, dan kunnen we hem ook zonder argumenten aanroepen
+	{
+		double[] initGenotype = new double[20];
+		this.setGenotype(initGenotype);
+
+	}
+
 	public Individual(double[] genotype)
 	{	// constructor initializes individual genotype
 		this.setGenotype(genotype);

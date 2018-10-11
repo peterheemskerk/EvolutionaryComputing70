@@ -158,34 +158,39 @@ public class player70 implements ContestSubmission
 	}
 
 	public static Individual[] selectParents( Individual[] population )
-	{	// select parents with fitness larger than average fitness
+	{	// select parents with tournament selection
 
 		int num_of_parents = 40;
 		Individual[] parents = new Individual[num_of_parents];
+		int parentInd = 0;
+		int tournamentSize = 40;
+		Individual bestIndividual = new Individual();
+		Individual secondBestIndividual = new Individual();
 
-		for (int parent = 0; parent < num_of_parents; parent++) {
-			Individual[] tournament;
+		while (parentInd < (num_of_parents-1)) {
+
 			double max_fitness = 0.0;
 			double second_max_fitness = 0.0;
-			double[] best_genes = {};
-			double[] second_best_genes = {};
 
-			for (int i = 0; i < num_of_parents; i++) {
+
+			for (int i = 0; i < tournamentSize; i++) { //Deze pool hoeft toch niet per se gelijk te zijn aan number of parents? Hadden we niet 20% gezegd?
 				int random_int = ThreadLocalRandom.current().nextInt(0, 100);
-				if (population[random_int].getFitness() > max_fitness) {
-					max_fitness = population[random_int].getFitness();
-					best_genes = population[random_int].getGenotype();
+				double currentFitness = population[random_int].getFitness(); // Dit bespaart wat tijd
+
+				if (currentFitness > max_fitness) {
+					max_fitness = currentFitness;
+					bestIndividual = population[random_int]; // Individu opslaan ipv genen, dan behoud je ook de fitness evaluation
 
 				}
-				if (population[random_int].getFitness() < max_fitness && population[random_int].getFitness() > second_max_fitness) {
-					second_max_fitness = population[random_int].getFitness();
-					second_best_genes = population[random_int].getGenotype();
+				if (currentFitness < max_fitness && currentFitness > second_max_fitness) {
+					second_max_fitness = currentFitness;
+					secondBestIndividual = population[random_int];
 				}
 			}
 
-			parents[parent] = new Individual(best_genes);
-			parent++;
-			parents[parent] = new Individual(second_best_genes);
+			parents[parentInd] = bestIndividual;
+			parentInd++;
+			parents[parentInd] = secondBestIndividual;
 
 
 		}
