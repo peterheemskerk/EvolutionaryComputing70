@@ -215,7 +215,7 @@ public class player70 implements ContestSubmission
 			Individual newChild = new Individual(childGenome);
 
 			// Perform the mutation on the child after recombination (random swap)
-			newChild.mutGenotype(newChild.getGenotype());	
+			newChild.mutGenotype(newChild.getGenotype(),tau);
 
 			newChildren[count] = newChild;
 		}

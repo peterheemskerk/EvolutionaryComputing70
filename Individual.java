@@ -59,11 +59,12 @@ public class Individual
 		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
 	}
 
-	public void mutGenotype(double[] oldGenotype)
+	public void mutGenotype(double[] oldGenotype, double tau)
 	{	
 		
 		double[] newGenotype = new double[20];
 
+		/*
 		int first_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
 		int second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
 
@@ -82,46 +83,46 @@ public class Individual
 				newGenotype[i] = oldGenotype[first_gene_int];
 			}
 		}
+		*/
 
 
-
-		// double candidateSigma;
+		double candidateSigma;
 		
-		// // Eerst de sigma's muteren (de eerste 10 elementen)
-		// for (int geneIndex=0;geneIndex<10;geneIndex++)
-		// {
-		// 	candidateSigma = oldGenotype[geneIndex]+Math.pow(Math.E,tau*rand.nextGaussian());
+		// Eerst de sigma's muteren (de eerste 10 elementen)
+		for (int geneIndex=0;geneIndex<10;geneIndex++)
+		{
+			candidateSigma = oldGenotype[geneIndex]+Math.pow(Math.E,tau*rand.nextGaussian());
 			
-		// 	// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
-		// 	if (candidateSigma < epsilon){
-		// 	candidateSigma = epsilon;
-		// 	}
+			// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
+			if (candidateSigma < epsilon){
+			candidateSigma = epsilon;
+			}
 
-		// 	// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
-		// 	newGenotype[geneIndex] = candidateSigma;
-		// } 
+		 	// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
+		 	newGenotype[geneIndex] = candidateSigma;
+		 }
 
-		// // Nu de x-waardes zelf (de laatste 10 elementen)
-		// for (int geneIndex=10;geneIndex<20;geneIndex++)
-		// {
-		// 	double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
+		 // Nu de x-waardes zelf (de laatste 10 elementen)
+		 for (int geneIndex=10;geneIndex<20;geneIndex++)
+		 {
+		 	double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
 			
-		// 	//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
-		// 	if (candidateX < domainFunction[0])
-		// 	{
-		// 		candidateX = domainFunction[0];
-		// 	}else if (candidateX >domainFunction[1])
-		// 	{
-		// 		candidateX = domainFunction[1];
-		// 	}
+		 	//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
+		 	if (candidateX < domainFunction[0])
+		 	{
+		 		candidateX = domainFunction[0];
+		 	}else if (candidateX >domainFunction[1])
+		 	{
+		 		candidateX = domainFunction[1];
+		 	}
 			
 			// De aangepaste kandidaat voor X in het nieuwe genotype zetten
-			// newGenotype[geneIndex] = candidateX;
+			 newGenotype[geneIndex] = candidateX;
 			
-		// }
-		genotype = newGenotype;
+		 }
+		this.setGenotype(newGenotype);
 
-		// return newGenotype;
+
 	}
 
 
