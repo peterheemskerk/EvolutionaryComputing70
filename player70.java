@@ -163,7 +163,7 @@ public class player70 implements ContestSubmission
 		int num_of_parents = 40;
 		Individual[] parents = new Individual[num_of_parents];
 		int parentInd = 0;
-		int tournamentSize = 40;
+		int tournamentSize = 5;
 		Individual bestIndividual = new Individual();
 		Individual secondBestIndividual = new Individual();
 
@@ -191,7 +191,7 @@ public class player70 implements ContestSubmission
 			parents[parentInd] = bestIndividual;
 			parentInd++;
 			parents[parentInd] = secondBestIndividual;
-
+			parentInd++;
 
 		}
 		return parents;
