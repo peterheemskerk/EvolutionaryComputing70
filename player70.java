@@ -12,10 +12,16 @@ import java.util.Properties;
 public class player70 implements ContestSubmission
 {
 	public static Random rnd_;
-	static ContestEvaluation evaluation_; //TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
+	static ContestEvaluation evaluation_; 						//TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
     	private int evaluations_limit_;
-	private static final double tau = 1/Math.sqrt(10); // Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
+
+	private static final int GENERATION_LIMIT = 10000;				// TODO - defaul = 10000
+	private static final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
+	private static final int CHILDREN_PER_GENERATION = 3;
+
+	private static final double tau = 1/Math.sqrt(10); 	// Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
 	private static final double epsilon = 1E-6; // Machine precision
+
 	public static int evals = 0;
 
 	public player70()
@@ -23,13 +29,11 @@ public class player70 implements ContestSubmission
 		rnd_ = new Random();
 	}
 
-	
 	public void setSeed(long seed)
 	{
 		// Set seed of algortihms random process
 		rnd_.setSeed(seed);
 	}
-
 
 	public void setEvaluation(ContestEvaluation evaluation)
 	{
@@ -58,32 +62,28 @@ public class player70 implements ContestSubmission
 	{
 		// Run your algorithm here
 		int generation = 0;
-		final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
-		final int GENERATION_LIMIT = 10000;
-		final int CHILDREN_PER_GENERATION = 20;
 		final Random randomNumbers = new Random();			// random number generator
 
-        // init population
-		System.out.printf("hallo ben op branch");
+        	// init population
 		Individual[] currentPop = initPopulation(NUMBER_OF_INDIVIDUALS);
-        // calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
+        	// calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
 		for (int i = 0; i < currentPop.length; i++)
 		{
-    		// Check fitness of unknown fuction
-    		Double fitness = (double) evaluation_.evaluate(currentPop[i].getFenotype());
+    			// Check fitness of unknown fuction
+    			Double fitness = (double) evaluation_.evaluate(currentPop[i].getFenotype());
 			currentPop[i].setFitness(fitness);
-            evals++;
+            		evals++;
 		}		
 
-        while(evals<evaluations_limit_ && generation < GENERATION_LIMIT){
+        	while(evals<evaluations_limit_ && generation < GENERATION_LIMIT){
 
-            // Select parents		
+            		// Select parents		
 			int num_individuals = currentPop.length; 
 			Individual[] newParents = selectParents(currentPop);
 			int num_children = CHILDREN_PER_GENERATION;
 			//DEBUG System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
 
-            // Apply crossover / mutation operators
+            		// Apply crossover / mutation operators
 			Individual[] newChildren = createChildren(num_children, newParents);
 
 			// Test fitness van gecreerde children
@@ -121,7 +121,6 @@ public class player70 implements ContestSubmission
 				{
 					randomGenotype[i]=epsilon; // If sigma is smaller than machine precision, make it machine precision
 				}
-				
 			}
 
 			for (int i = 10; i < 20; i++) // Now fill in the "x-es" of the random genotype
@@ -161,7 +160,7 @@ public class player70 implements ContestSubmission
 	public static Individual[] selectParents( Individual[] population )
 	{	// select parents with tournament selection
 
-		int num_of_parents = 40;
+		int num_of_parents = 2 * CHILDREN_PER_GENERATION;
 		Individual[] parents = new Individual[num_of_parents];
 		int parentInd = 0;
 		int tournamentSize = 40;
@@ -173,9 +172,8 @@ public class player70 implements ContestSubmission
 			double max_fitness = 0.0;
 			double second_max_fitness = 0.0;
 
-
 			for (int i = 0; i < tournamentSize; i++) { //Deze pool hoeft toch niet per se gelijk te zijn aan number of parents? Hadden we niet 20% gezegd?
-				int random_int = ThreadLocalRandom.current().nextInt(0, 100);
+				int random_int = ThreadLocalRandom.current().nextInt(0, NUMBER_OF_INDIVIDUALS);   // TODO - hier stond 100, dit klopt waarschijnlijk ?
 				double currentFitness = population[random_int].getFitness(); // Dit bespaart wat tijd
 
 				if (currentFitness > max_fitness) {
@@ -192,8 +190,8 @@ public class player70 implements ContestSubmission
 			parents[parentInd] = bestIndividual;
 			parentInd++;
 			parents[parentInd] = secondBestIndividual;
-
-
+			parentInd++;
+		
 		}
 		return parents;
 	} 
@@ -201,6 +199,9 @@ public class player70 implements ContestSubmission
 	public static Individual[] createChildren( int numChildren, Individual[] parents )
 		// children worden gemaakt uit parents
 	{
+		//   choose mutationtype: sigma-mut = True: mutation using Normal(Sigma) - False: random mutation
+		boolean sigma_mut = true;  // TODO parameter-tuning
+
 		// create empty child population with right number
 		Individual[] newChildren = new Individual[numChildren];
 		
@@ -216,7 +217,7 @@ public class player70 implements ContestSubmission
 			Individual newChild = new Individual(childGenome);
 
 			// Perform the mutation on the child after recombination (random swap)
-			newChild.mutGenotype(newChild.getGenotype(),tau);
+			newChild.mutGenotype(newChild.getGenotype(), tau, sigma_mut);
 
 			newChildren[count] = newChild;
 		}
@@ -244,8 +245,8 @@ public class player70 implements ContestSubmission
 
 	public static Individual[] selectSurvivors(Individual[] parentPop, Individual[] childrenPop) 
 	{
-		double[] fitnesslist = new double[120];
-		int NUMBER_OF_INDIVIDUALS = 100;
+		double[] fitnesslist = new double[NUMBER_OF_INDIVIDUALS + CHILDREN_PER_GENERATION]; // TODO - hier stond 120
+		//  int NUMBER_OF_INDIVIDUALS = 100; TODO - mag weg
 		Individual[] newPop = new Individual[NUMBER_OF_INDIVIDUALS];
 
 		for (int i = 0; i < (parentPop.length + childrenPop.length); i++) {
@@ -259,9 +260,9 @@ public class player70 implements ContestSubmission
 
 		Arrays.sort(fitnesslist);
 
-		for (int i = 0; i < 100; i++) {
-			double searchedfitness = fitnesslist[i + 20];
-			for (int j = 0; j < 120; j++) {
+		for (int i = 0; i < NUMBER_OF_INDIVIDUALS; i++) {					// TODO - hier stond 100
+			double searchedfitness = fitnesslist[i + CHILDREN_PER_GENERATION];   		// TODO - hier stond 20
+			for (int j = 0; j < NUMBER_OF_INDIVIDUALS + CHILDREN_PER_GENERATION; j++) {   	// TODO - hierstond 120
 				if (j < childrenPop.length) {
 					if (childrenPop[j].getFitness() == searchedfitness) {
 						newPop[i] = new Individual(childrenPop[j].getGenotype());
@@ -269,9 +270,9 @@ public class player70 implements ContestSubmission
 					}
 				}
 				else {
-					if (parentPop[j - 20].getFitness() == searchedfitness) {
-						newPop[i] = new Individual(parentPop[j - 20].getGenotype());
-						newPop[i].setFitness(parentPop[j - 20].getFitness());
+					if (parentPop[j - CHILDREN_PER_GENERATION].getFitness() == searchedfitness) {
+						newPop[i] = new Individual(parentPop[j - CHILDREN_PER_GENERATION].getGenotype());
+						newPop[i].setFitness(parentPop[j - CHILDREN_PER_GENERATION].getFitness());
 					}
 				}
 			}

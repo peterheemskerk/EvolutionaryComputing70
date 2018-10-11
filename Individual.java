@@ -33,7 +33,6 @@ public class Individual
 		this.setGenotype(genotype);
 	} 
 
-	
 	public double[] mapGenoToFeno(double[] genotype) //TODO Ik maak me bij dit soort dubbele naamgeving (de input heet hetzelfde als de private variabele hierboven) altijd een beetje zorgen, gaat dat hier goed?
 	{
 		double[] fenotype = new double[10]; //TODO Eigenlijk is het "phenotype" in het engels, niet "fenotype", zullen we toch maar de f aanhouden?
@@ -59,71 +58,89 @@ public class Individual
 		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
 	}
 
-	public void mutGenotype(double[] oldGenotype, double tau)
+	public void mutGenotype(double[] oldGenotype, double tau, boolean sigma_mut)
 	{	
 		
 		double[] newGenotype = new double[20];
 
-		/*
-		int first_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
-		int second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
+		if (sigma_mut)
+		{   	// start procedure sigma-mut
 
-		while (first_gene_int == second_gene_int) {
-			second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
-		}
+			double candidateSigma;
+			double factor;
 
-		for (int i = 0; i < 20; i++) {
-			if (i != first_gene_int && i != second_gene_int) {
-				newGenotype[i] = oldGenotype[i];
-			}
-			else if (i == first_gene_int) {
-				newGenotype[i] = oldGenotype[second_gene_int];
-			}
-			else {
-				newGenotype[i] = oldGenotype[first_gene_int];
-			}
-		}
-		*/
-
-
-		double candidateSigma;
-		
-		// Eerst de sigma's muteren (de eerste 10 elementen)
-		for (int geneIndex=0;geneIndex<10;geneIndex++)
-		{
-			candidateSigma = oldGenotype[geneIndex]+Math.pow(Math.E,tau*rand.nextGaussian());
+			// Eerst de sigma's muteren (de eerste 10 elementen)
+			for (int geneIndex=0;geneIndex<10;geneIndex++)
+			{
+				factor = Math.pow(Math.E,tau*rand.nextGaussian());
+				candidateSigma = oldGenotype[geneIndex]*factor;
 			
-			// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
-			if (candidateSigma < epsilon){
-			candidateSigma = epsilon;
-			}
+				// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
+				if (candidateSigma < epsilon)
+				{
+					candidateSigma = epsilon;
+				}
 
-		 	// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
-		 	newGenotype[geneIndex] = candidateSigma;
-		 }
+				if (geneIndex==0){System.out.printf("oldsigma: %.1f - sigma: %.1f = ", oldGenotype[geneIndex], candidateSigma);} 	// TODO - dit is tijdelijk
 
-		 // Nu de x-waardes zelf (de laatste 10 elementen)
-		 for (int geneIndex=10;geneIndex<20;geneIndex++)
-		 {
-		 	double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
+		 		// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
+		 		newGenotype[geneIndex] = candidateSigma;
+		 	}   // end for
+
+		 	// Nu de x-waardes zelf (de laatste 10 elementen)
+		 	for (int geneIndex=10;geneIndex<20;geneIndex++)
+		 	{
+		 		double candidateX = oldGenotype[geneIndex]+newGenotype[geneIndex-10]*rand.nextGaussian();
 			
-		 	//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
-		 	if (candidateX < domainFunction[0])
-		 	{
-		 		candidateX = domainFunction[0];
-		 	}else if (candidateX >domainFunction[1])
-		 	{
-		 		candidateX = domainFunction[1];
-		 	}
+		 		//Als de kandidaat X waarde uit het domein van de functie gaat, hem gelijk stellen aan de randwaarde.
+		 		if (candidateX < domainFunction[0])
+			 	{
+			 		candidateX = domainFunction[0];
+			 	}
+				else if (candidateX >domainFunction[1])
+		 		{
+			 		candidateX = domainFunction[1];
+		 		}
 			
 			// De aangepaste kandidaat voor X in het nieuwe genotype zetten
-			 newGenotype[geneIndex] = candidateX;
-			
-		 }
+			newGenotype[geneIndex] = candidateX;
+			}   // end for			
+						
+		}  //  End of procedure sigma-mut
+
+		else
+		{  	// start procedure willekeurige mutatie (sigma-mut = False)
+		
+			int first_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
+			int second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
+
+			while (first_gene_int == second_gene_int) 
+			{
+				second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
+			}
+
+			for (int i = 0; i < 20; i++) 
+			{
+				if (i != first_gene_int && i != second_gene_int) 
+				{
+					newGenotype[i] = oldGenotype[i];
+				}
+				else if (i == first_gene_int) 
+				{
+					newGenotype[i] = oldGenotype[second_gene_int];
+				}
+				else 
+				{
+					newGenotype[i] = oldGenotype[first_gene_int];
+				}
+			}	// end for
+
+		}	// End of procedure willekeurige mutatie (sigma-mut = False
+
+
 		this.setGenotype(newGenotype);
 
-
-	}
+	}  // end method mut_Genotype
 
 
 	public void setFitness( double newfitness )
