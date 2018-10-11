@@ -58,9 +58,24 @@ public class Individual
 		return mapGenoToFeno(this.genotype); //TODO Hier weer de vraag of "this" nodig is.
 	}
 
+	
+	public void mutGenotypeRandom(double[] oldGenotype)
+	{	// muteert een willekeurige van de 20 genen, naar een willekeurige waarde tussen 0 en N(0,1) of -5 en 5
+		double[] newGenotype = new double[20];		
+		int randomGenIndex = rand.nextInt(19);
+		double randomSigma = Math.abs(rand.nextGaussian());
+		double randomX = -5+10*rand.nextDouble();
+		if (randomGenIndex < 10)
+		{	newGenotype[randomGenIndex] = randomSigma;}
+		else
+		{	newGenotype[randomGenIndex] = randomX;}
+		// System.out.printf("GenIndex: %d - oldgene: %.1f - newgene: %.1f = ", randomGenIndex, oldGenotype[randomGenIndex], newGenotype[randomGenIndex]);	// TODO - dit is tijdelijk
+		// System.out.println();
+		this.setGenotype(newGenotype);
+	}
+			
 	public void mutGenotype(double[] oldGenotype, double tau, boolean sigma_mut)
 	{	
-		
 		double[] newGenotype = new double[20];
 
 		if (sigma_mut)
@@ -73,18 +88,17 @@ public class Individual
 			for (int geneIndex=0;geneIndex<10;geneIndex++)
 			{
 				factor = Math.pow(Math.E,tau*rand.nextGaussian());
-				candidateSigma = oldGenotype[geneIndex]*factor;
-			
+				candidateSigma = oldGenotype[geneIndex]*factor;			// Peter: dit is dus * ipv +
 				// Als de nieuwe sigma kleiner is dan de machine precision epsilon, hem gelijk stellen hieraan
 				if (candidateSigma < epsilon)
 				{
 					candidateSigma = epsilon;
 				}
-
-				if (geneIndex==0){System.out.printf("oldsigma: %.1f - sigma: %.1f = ", oldGenotype[geneIndex], candidateSigma);} 	// TODO - dit is tijdelijk
-
 		 		// De aangepaste kandidaat voor sigma in het nieuwe genoom zetten
 		 		newGenotype[geneIndex] = candidateSigma;
+
+				// if (geneIndex==0){System.out.printf("oldsigma: %.1f - sigma: %.1f = ", oldGenotype[geneIndex], newGenotype[geneIndex]);} 	// TODO - dit is tijdelijk
+
 		 	}   // end for
 
 		 	// Nu de x-waardes zelf (de laatste 10 elementen)
@@ -102,14 +116,14 @@ public class Individual
 			 		candidateX = domainFunction[1];
 		 		}
 			
-			// De aangepaste kandidaat voor X in het nieuwe genotype zetten
-			newGenotype[geneIndex] = candidateX;
+				// De aangepaste kandidaat voor X in het nieuwe genotype zetten
+				newGenotype[geneIndex] = candidateX;
 			}   // end for			
 						
 		}  //  End of procedure sigma-mut
 
 		else
-		{  	// start procedure willekeurige mutatie (sigma-mut = False)
+		{  	// start procedure willekeurige swap (sigma-mut = False)
 		
 			int first_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
 			int second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);

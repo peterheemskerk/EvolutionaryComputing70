@@ -15,9 +15,10 @@ public class player70 implements ContestSubmission
 	static ContestEvaluation evaluation_; 						//TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
     	private int evaluations_limit_;
 
-	private static final int GENERATION_LIMIT = 10000;				// TODO - defaul = 10000
+	private static final int GENERATION_LIMIT = 100000;				// TODO - default = 10000
 	private static final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
-	private static final int CHILDREN_PER_GENERATION = 3;
+	private static final int CHILDREN_PER_GENERATION = 15;
+	private static final double RANDOM_MUTATION_PROB = 0.01;
 
 	private static final double tau = 1/Math.sqrt(10); 	// Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
 	private static final double epsilon = 1E-6; // Machine precision
@@ -199,33 +200,45 @@ public class player70 implements ContestSubmission
 	public static Individual[] createChildren( int numChildren, Individual[] parents )
 		// children worden gemaakt uit parents
 	{
-		//   choose mutationtype: sigma-mut = True: mutation using Normal(Sigma) - False: random mutation
+		//   choose mutationtype: sigma-mut = True: mutation using Normal(Sigma) - False: random swap
 		boolean sigma_mut = true;  // TODO parameter-tuning
+		Random rand = new Random(); //TODO Is een aparte random number generator per individu okee of willen we een centrale gebruiken?
 
 		// create empty child population with right number
 		Individual[] newChildren = new Individual[numChildren];
 		
-		int parentcount = 0;
-		for ( int count = 0; count < numChildren; count++ )
+		int parentcount = 0;		// TODO volgens mij werkt deze procedure alleen als aantal parents > aantal kinderen. 
+		for ( int count = 0; count < numChildren; count=count+2 )
 		{			
 			Individual parent1 = parents[parentcount];
 			parentcount++;
 			Individual parent2 = parents[parentcount];
 			parentcount++;
 
-			double[] childGenome = recombineGenotypes(parent1.getGenotype(), parent2.getGenotype());
-			Individual newChild = new Individual(childGenome);
+			double[] child1Genome = recombineGenotypes_twee(parent1.getGenotype(), parent2.getGenotype())[0];
+			double[] child2Genome = recombineGenotypes_twee(parent1.getGenotype(), parent2.getGenotype())[1];
 
-			// Perform the mutation on the child after recombination (random swap)
-			newChild.mutGenotype(newChild.getGenotype(), tau, sigma_mut);
+			Individual newChild1 = new Individual(child1Genome);
+			Individual newChild2 = new Individual(child2Genome);
 
-			newChildren[count] = newChild;
+			// Perform the mutation on the childs after recombination (Normal(sigma) or random swap)
+			newChild1.mutGenotype(newChild1.getGenotype(), tau, sigma_mut);
+			newChild2.mutGenotype(newChild2.getGenotype(), tau, sigma_mut);
+
+			// Perform total random mutation for certain cases
+			if (rand.nextDouble() < RANDOM_MUTATION_PROB)	
+			{	
+				newChild1.mutGenotypeRandom(newChild1.getGenotype());
+				newChild2.mutGenotypeRandom(newChild2.getGenotype());
+			}
+			newChildren[count] = newChild1;
+			if (count < numChildren-1) {newChildren[count+1] = newChild2;}		
 		}
 		return newChildren;
 	}
 
 	public static double[] recombineGenotypes(double[] genotype1, double[] genotype2)
-	{
+	{	// TODO deze wordt niet meer gebruik en kan dus weg
 		double[] childGenotype = new double[20];
 		for (int i = 0; i < genotype1.length; i++)
 		{
@@ -241,6 +254,27 @@ public class player70 implements ContestSubmission
 			}
 		}
 		return childGenotype;
+	}
+
+
+	public static double[][] recombineGenotypes_twee(double[] genotype1, double[] genotype2)
+	{
+		double[] childGenotype1 = new double[20];
+		double[] childGenotype2 = new double[20];
+		for (int i = 0; i < genotype1.length; i++)
+		{
+			if (rnd_.nextBoolean()) // Pak een random true of false, aan de hand daarvan het ene of andere genoom samplen. Wordt nu geen onderscheid tussen sigma en x gemaakt
+			{
+				childGenotype1[i] = genotype1[i];
+				childGenotype2[i] = genotype2[i];
+			}
+			else
+			{
+				childGenotype1[i] = genotype2[i];
+				childGenotype2[i] = genotype1[i];
+			}
+		}
+		return new double[][] {childGenotype1, childGenotype2};
 	}
 
 	public static Individual[] selectSurvivors(Individual[] parentPop, Individual[] childrenPop) 
