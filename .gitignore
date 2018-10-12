@@ -1,0 +1,12 @@
+# Negeer alles:
+*
+
+# Behalve deze file zelf:
+!.gitignore
+
+# En files met deze extensie:
+!*.java
+!*.jar
+!*.txt
+!*.pdf
+!*.ipynb
