@@ -3,6 +3,7 @@ import org.vu.contest.ContestEvaluation;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.*;
 // import org.apache.commons.lang.ArrayUtils;
 
 
@@ -59,7 +60,7 @@ public class player70 implements ContestSubmission
 		// Run your algorithm here
 		int generation = 0;
 		final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
-		final int GENERATION_LIMIT = 10000;
+		final int GENERATION_LIMIT = 100000000;
 		final int CHILDREN_PER_GENERATION = 20;
 		final Random randomNumbers = new Random();			// random number generator
 
@@ -101,6 +102,7 @@ public class player70 implements ContestSubmission
 
 		}	// endwhile
  		//DEBUG printPop(currentPop);
+ 		// Double.parseDouble(System.getProperty("var1"));
 
 	}	// endrun()
 
@@ -256,10 +258,30 @@ public class player70 implements ContestSubmission
 			}
 		}
 
+		int sumchoices = 0;
+		for (int i = 0; i < fitnesslist.length; i++) {
+			sumchoices += i;
+
+		}
+		double[] choicelist = new double[sumchoices];
+		int index = 0;
+
 		Arrays.sort(fitnesslist);
+		for (int i = 0; i < fitnesslist.length; i++) {
+			// System.out.println(i + ": " +fitnesslist[i]);
+			for (int j = 0; j < i; j++) {
+				choicelist[index] = fitnesslist[i];
+				index += 1;
+			}
+		}
 
 		for (int i = 0; i < 100; i++) {
-			double searchedfitness = fitnesslist[i + 20];
+			int random_ind = ThreadLocalRandom.current().nextInt(0, choicelist.length);
+			double searchedfitness = choicelist[random_ind];
+			while (searchedfitness == 0.0) {
+				random_ind = ThreadLocalRandom.current().nextInt(0, choicelist.length);
+				searchedfitness = choicelist[random_ind];
+			}
 			for (int j = 0; j < 120; j++) {
 				if (j < childrenPop.length) {
 					if (childrenPop[j].getFitness() == searchedfitness) {
@@ -274,7 +296,31 @@ public class player70 implements ContestSubmission
 					}
 				}
 			}
+			for (int k = 0; k < choicelist.length; k++){
+				if (choicelist[k] == searchedfitness) {
+					choicelist[k] = 0.0;
+				}
+			}
+			// System.out.println("Lengte choicelist: " + choicelist.length);
 		}
+
+		// for (int i = 0; i < 100; i++) {
+		// 	double searchedfitness = fitnesslist[i + 20];
+		// 	for (int j = 0; j < 120; j++) {
+		// 		if (j < childrenPop.length) {
+		// 			if (childrenPop[j].getFitness() == searchedfitness) {
+		// 				newPop[i] = new Individual(childrenPop[j].getGenotype());
+		// 				newPop[i].setFitness(childrenPop[j].getFitness());
+		// 			}
+		// 		}
+		// 		else {
+		// 			if (parentPop[j - 20].getFitness() == searchedfitness) {
+		// 				newPop[i] = new Individual(parentPop[j - 20].getGenotype());
+		// 				newPop[i].setFitness(parentPop[j - 20].getFitness());
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		return newPop;
 	}
