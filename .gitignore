@@ -1,0 +1,20 @@
+# Negeer alles:
+*
+
+# Behalve deze file zelf:
+!.gitignore
+
+# En files met deze extensie:
+!*.java
+!*.jar
+!*.class
+!*.txt
+!*.pdf
+!*.dll
+!*.ipynb
+
+# En deze specifieke folders:
+!/META-INF/
+
+# Ook al zitten ze in subfolders
+!*/
