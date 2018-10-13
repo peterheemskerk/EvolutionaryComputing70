@@ -64,7 +64,7 @@ public class Individual
 		
 		double[] newGenotype = new double[20];
 
-		/*
+		
 		int first_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
 		int second_gene_int = ThreadLocalRandom.current().nextInt(10, 20);
 
@@ -83,9 +83,9 @@ public class Individual
 				newGenotype[i] = oldGenotype[first_gene_int];
 			}
 		}
-		*/
+		
 
-
+		/*
 		double candidateSigma;
 		
 		// Eerst de sigma's muteren (de eerste 10 elementen)
@@ -120,7 +120,9 @@ public class Individual
 			 newGenotype[geneIndex] = candidateX;
 			
 		 }
+		 */
 		this.setGenotype(newGenotype);
+		
 
 
 	}
