@@ -12,9 +12,11 @@
 !*.pdf
 !*.dll
 !*.ipynb
+!*.tex
 
 # En deze specifieke folders:
 !/META-INF/
+!/latex/
 
 # Ook al zitten ze in subfolders
 !*/
