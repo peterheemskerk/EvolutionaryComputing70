@@ -10,7 +10,11 @@
 !*.class
 !*.txt
 !*.pdf
+!*.dll
 !*.ipynb
 
-# subdirectories ook niet negeren
+# En deze specifieke folders:
+!/META-INF/
+
+# ook al zitten ze in subfolders:
 !*/
