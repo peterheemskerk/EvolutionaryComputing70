@@ -83,7 +83,7 @@ public class player70 implements ContestSubmission
 			int num_individuals = currentPop.length; 
 			Individual[] newParents = selectParents(currentPop);
 			int num_children = CHILDREN_PER_GENERATION;
-			//DEBUG System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
+
 
             		// Apply crossover / mutation operators
 			Individual[] newChildren = createChildren(num_children, newParents);
@@ -98,8 +98,7 @@ public class player70 implements ContestSubmission
 			}  
 			Individual[] newPop = selectSurvivors(currentPop, newChildren);	
 			currentPop = newPop;
-			System.out.print("DIT WAS GENERATIE: ");
-			System.out.println(generation);
+
 			generation++;
 
 		}	// endwhile
