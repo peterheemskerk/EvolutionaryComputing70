@@ -4,6 +4,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.*;
+// import java.io.PrintWriter;
+// import java.io.File;
+
 // import org.apache.commons.lang.ArrayUtils;
 
 
@@ -16,12 +19,13 @@ public class player70 implements ContestSubmission
 	static ContestEvaluation evaluation_; 						//TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
     	private int evaluations_limit_;
 
-	private static final int GENERATION_LIMIT = 100000;				// TODO - default = 10000
+	private static final int GENERATION_LIMIT = 1000000;				// TODO - default = 10000
 	private static final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
 	private static final int CHILDREN_PER_GENERATION = 15;
 	private static final boolean SIGMA_MUT = true;					// SIGMA_MUT = true: mutation using Normal(Sigma) - false: random swap
 	private static final boolean ONE_CHILD = false;					// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
 	private static final double RANDOM_MUTATION_PROB = 0;				// kans dat een gecreerd kind nog volledige random mutatie van 1 van zijn genen (incl. sigma) krijgt
+
 
 	private static final double tau = 1/Math.sqrt(10); 	// Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
 	private static final double epsilon = 1E-6; // Machine precision
@@ -68,6 +72,9 @@ public class player70 implements ContestSubmission
 		int generation = 0;
 		final Random randomNumbers = new Random();			// random number generator
 
+		// print to csv
+		System.out.println("Generation; Max; Min; Mean");
+
         	// init population
 		Individual[] currentPop = initPopulation(NUMBER_OF_INDIVIDUALS);
         	// calculate fitness - v1.1 fitness initiele populatie wordt nu berekend door externe evaluatie. 
@@ -81,7 +88,7 @@ public class player70 implements ContestSubmission
 
         	while(evals<evaluations_limit_ && generation < GENERATION_LIMIT){
 
-            		// Select parents		
+            		// Select parents	
 			int num_individuals = currentPop.length; 
 			Individual[] newParents = selectParents(currentPop);
 			int num_children = CHILDREN_PER_GENERATION;
@@ -100,6 +107,7 @@ public class player70 implements ContestSubmission
 			}  
 			Individual[] newPop = selectSurvivors(currentPop, newChildren);	
 			currentPop = newPop;
+			/*
 			System.out.print("DIT WAS GENERATIE: ");
 			System.out.print(generation);
 			System.out.print("  DIVERSITEIT X ");
@@ -108,12 +116,27 @@ public class player70 implements ContestSubmission
 			System.out.print(divPop(currentPop)[1]);
 			System.out.print("  TOTAAL sigma: ");
 			System.out.println(divPop(currentPop)[2]);
+			*/
+			// System.out.print("DIT WAS GENERATIE: ");
+			// System.out.println(generation);
+			
+			double maxofgen = 0.0;
+			double minofgen = 10.0;
+			double mean = 0.0;
+			for (int i = 0; i < newPop.length; i++){
+				if (newPop[i].getFitness() > maxofgen) {
+					maxofgen = newPop[i].getFitness();
+				}
+				if (newPop[i].getFitness() < minofgen) {
+					minofgen = newPop[i].getFitness();
+				}
+				mean += newPop[i].getFitness();
+			}
+			mean = mean / newPop.length;
+			System.out.println(generation + "; " + maxofgen + "; " + minofgen + "; " + mean);
 			generation++;
-
 		}	// endwhile
- 		//DEBUG printPop(currentPop);
- 		// Double.parseDouble(System.getProperty("var1"));
-
+// }
 	}	// endrun()
 
 
@@ -374,10 +397,11 @@ public class player70 implements ContestSubmission
 
 	public static Individual[] selectSurvivors(Individual[] parentPop, Individual[] childrenPop) 
 	{
-		double[] fitnesslist = new double[NUMBER_OF_INDIVIDUALS + CHILDREN_PER_GENERATION]; // TODO - hier stond 120
-		//  int NUMBER_OF_INDIVIDUALS = 100; TODO - mag weg
+		double[] fitnesslist = new double[NUMBER_OF_INDIVIDUALS + CHILDREN_PER_GENERATION];
 		Individual[] newPop = new Individual[NUMBER_OF_INDIVIDUALS];
+		// int number_in_choicelist = 0;
 
+		// add all fitness scores to a list
 		for (int i = 0; i < (parentPop.length + childrenPop.length); i++) {
 			if (i < childrenPop.length) {
 				fitnesslist[i] = childrenPop[i].getFitness();
@@ -387,17 +411,19 @@ public class player70 implements ContestSubmission
 			}
 		}
 
+		// calculate length of roulettewheel list
 		int sumchoices = 0;
 		for (int i = 0; i < fitnesslist.length; i++) {
 			sumchoices += i;
-
 		}
+
+		// create roulettewheel list
 		double[] choicelist = new double[sumchoices];
 		int index = 0;
 
+		// fill roulettewheel list
 		Arrays.sort(fitnesslist);
 		for (int i = 0; i < fitnesslist.length; i++) {
-			// System.out.println(i + ": " +fitnesslist[i]);
 			for (int j = 0; j < i; j++) {
 				choicelist[index] = fitnesslist[i];
 				index += 1;
@@ -405,6 +431,7 @@ public class player70 implements ContestSubmission
 		}
 
 		for (int i = 0; i < NUMBER_OF_INDIVIDUALS; i++) {
+		
 			int random_ind = ThreadLocalRandom.current().nextInt(0, choicelist.length);
 			double searchedfitness = choicelist[random_ind];
 			while (searchedfitness == 0.0) {
@@ -425,31 +452,13 @@ public class player70 implements ContestSubmission
 					}
 				}
 			}
-			for (int k = 0; k < choicelist.length; k++){
+			
+			for (int k = 0; k < choicelist.length; k++) {
 				if (choicelist[k] == searchedfitness) {
 					choicelist[k] = 0.0;
 				}
 			}
-			// System.out.println("Lengte choicelist: " + choicelist.length);
 		}
-
-		// for (int i = 0; i < 100; i++) {
-		// 	double searchedfitness = fitnesslist[i + 20];
-		// 	for (int j = 0; j < 120; j++) {
-		// 		if (j < childrenPop.length) {
-		// 			if (childrenPop[j].getFitness() == searchedfitness) {
-		// 				newPop[i] = new Individual(childrenPop[j].getGenotype());
-		// 				newPop[i].setFitness(childrenPop[j].getFitness());
-		// 			}
-		// 		}
-		// 		else {
-		// 			if (parentPop[j - 20].getFitness() == searchedfitness) {
-		// 				newPop[i] = new Individual(parentPop[j - 20].getGenotype());
-		// 				newPop[i].setFitness(parentPop[j - 20].getFitness());
-		// 			}
-		// 		}
-		// 	}
-		// }
 
 		return newPop;
 	}
