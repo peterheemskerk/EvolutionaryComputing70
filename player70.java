@@ -16,19 +16,20 @@ import java.util.Properties;
 public class player70 implements ContestSubmission
 {
 	public static Random rnd_;
-	static ContestEvaluation evaluation_; 						//TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
+	static ContestEvaluation evaluation_; 				//TODO Deze heb ik zelf static gemaakt om een error op te lossen; misschien is dat niet de way to go
     	private int evaluations_limit_;
 
-	private static final int GENERATION_LIMIT = 1000000;				// TODO - default = 10000
-	private static final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
+	private static final int GENERATION_LIMIT = 1000000;		// TODO - default = 10000
+	private static final int NUMBER_OF_INDIVIDUALS = 100; 		// size of population
 	private static final int CHILDREN_PER_GENERATION = 15;
-	private static final boolean SIGMA_MUT = true;					// SIGMA_MUT = true: mutation using Normal(Sigma) - false: random swap
-	private static final boolean ONE_CHILD = false;					// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
-	private static final double RANDOM_MUTATION_PROB = 0;				// kans dat een gecreerd kind nog volledige random mutatie van 1 van zijn genen (incl. sigma) krijgt
+	private static final boolean SIGMA_MUT = true;			// SIGMA_MUT = true: mutation using Normal(Sigma) - false: random swap
+	private static final boolean ONE_CHILD = false;			// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
+	private static final double RANDOM_MUTATION_PROB = 0;		// between 0 and 1. kans dat een gecreerd kind nog volledige random mutatie van 1 van zijn genen (incl. sigma) kri
+	private static final double FITNESS_TRESHOLD = 9.9;		// use to determine number of iterations needed to reach this fitnes treshold. 
 
 
-	private static final double tau = 1/Math.sqrt(10); 	// Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
-	private static final double epsilon = 1E-6; // Machine precision
+	private static final double tau = 1/Math.sqrt(10); 		// Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
+	private static final double epsilon = 1E-6; 			// Machine precision
 
 	public static int evals = 0;
 
@@ -70,6 +71,8 @@ public class player70 implements ContestSubmission
 	{
 		// Run your algorithm here
 		int generation = 0;
+		int generation_treshhold = 1000000;	
+		boolean treshhold_reached = false;
 		final Random randomNumbers = new Random();			// random number generator
 
 		// print to csv
@@ -86,13 +89,12 @@ public class player70 implements ContestSubmission
             		evals++;
 		}		
 
-        	while(evals<evaluations_limit_ && generation < GENERATION_LIMIT){
-
+        	while(evals<evaluations_limit_ && generation < GENERATION_LIMIT)
+		{
             		// Select parents	
 			int num_individuals = currentPop.length; 
 			Individual[] newParents = selectParents(currentPop);
 			int num_children = CHILDREN_PER_GENERATION;
-			//DEBUG System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
 
             		// Apply crossover / mutation operators
 			Individual[] newChildren = createChildren(num_children, newParents, SIGMA_MUT, ONE_CHILD);
@@ -100,44 +102,52 @@ public class player70 implements ContestSubmission
 			// Test fitness van gecreerde children
 			for (int i = 0; (i < newChildren.length && evals<evaluations_limit_); i++)
 			{
-    			// Check fitness of unknown fuction
-    			Double fitness = (double) evaluation_.evaluate(newChildren[i].getFenotype());
+    				// Check fitness of unknown fuction
+    				Double fitness = (double) evaluation_.evaluate(newChildren[i].getFenotype());
 				newChildren[i].setFitness(fitness);
-    			evals++;
+				// Check if fitness treshold is reached
+				// if (treshhold_reached == false && fitness > FITNESS_TRESHOLD) 
+				// {
+				// 	generation_treshhold = generation;
+				//	treshhold_reached = true;
+				// }	
+				// Next Evaluation
+    				evals++;
 			}  
+			// Select survivors
 			Individual[] newPop = selectSurvivors(currentPop, newChildren);	
-			currentPop = newPop;
-			/*
-			System.out.print("DIT WAS GENERATIE: ");
-			System.out.print(generation);
-			System.out.print("  DIVERSITEIT X ");
-			System.out.print(divPop(currentPop)[0]);
-			System.out.print("  DIVERSITEIT sigma: ");
-			System.out.print(divPop(currentPop)[1]);
-			System.out.print("  TOTAAL sigma: ");
-			System.out.println(divPop(currentPop)[2]);
-			*/
+
+			// Calculate parameters of new population and generate output
+			double[] divresults = divPop(newPop);
+			double maxofgen = divresults[0];
+			double minofgen = divresults[1];
+			double mean_fitness = divresults[2];
+			double diversityX = divresults[3];
+			double diversitySigma = divresults[4];
+			double totaldistSigma = divresults[5];
+
+			System.out.println(generation + "; " + maxofgen + "; " + minofgen + "; " + mean_fitness + "; " + diversityX + "; " + diversitySigma + "; " + totaldistSigma );
 			// System.out.print("DIT WAS GENERATIE: ");
 			// System.out.println(generation);
-			
-			double maxofgen = 0.0;
-			double minofgen = 10.0;
-			double mean = 0.0;
-			for (int i = 0; i < newPop.length; i++){
-				if (newPop[i].getFitness() > maxofgen) {
-					maxofgen = newPop[i].getFitness();
-				}
-				if (newPop[i].getFitness() < minofgen) {
-					minofgen = newPop[i].getFitness();
-				}
-				mean += newPop[i].getFitness();
-			}
-			mean = mean / newPop.length;
-			System.out.println(generation + "; " + maxofgen + "; " + minofgen + "; " + mean);
+
+			if (treshhold_reached == false && maxofgen > FITNESS_TRESHOLD) 
+			{
+				generation_treshhold = generation;
+				treshhold_reached = true;
+			}	
+
+			// Determine next generation
+			currentPop = newPop;
 			generation++;
-		}	// endwhile
-// }
-	}	// endrun()
+
+		}	// Endwhile
+		System.out.println("Generation; Max Fitness; Min Fitness - Mean Fitness - Diversity X - Diversity Sigma - Total Sigma");
+		System.out.print("GENERATION AT WHICH FITNESS TRESHOLD ");
+		System.out.print(FITNESS_TRESHOLD);
+		System.out.print(" IS REACHED: ");
+		System.out.println(generation_treshhold +1);
+
+	}	// Endrun()
 
 
 	// below group70 - procedures
@@ -181,58 +191,77 @@ public class player70 implements ContestSubmission
 		}
 	}
 
-	public static double[] divPop(Individual[] population) // bererkene diversiteit van populatie
+	public static double[] divPop(Individual[] population) 
+		// calculate diversity of population
 	{
-		// step 1 - calculate center
-		double diversityX = 0;
-		double diversitysigma = 0;
-		double quasumdiversityX = 0;
-		double quasumdiversitysigma = 0;
-		double totalcentersigma = 0;
+		// step 1 - calculate center for each dimension
 		double[] centerX = new double[10];
+		double[] centerSigma = new double[10];
 		double[] totalX = {0,0,0,0,0,0,0,0,0,0};
-		double[] centersigma = new double[10];
-		double[] totalsigma = {0,0,0,0,0,0,0,0,0,0};
-		double[] averageX = new double[10];
-		double[] averagesigma = new double[10];
-		// bereken centers voor elke dimensie
+		double[] totalSigma = {0,0,0,0,0,0,0,0,0,0};
 		for ( int count = 0; count < population.length; count++ )
+
 		{
 			for ( int i = 0; i < 10; i++ )
 			{
 				totalX[i] += population[count].getGenotype()[i+10];
-				totalsigma[i] += population[count].getGenotype()[i];
+				totalSigma[i] += population[count].getGenotype()[i];
 			}				
 		}
 		for ( int i = 0; i < 10; i++ )
 		{
 			centerX[i] = totalX[i] / population.length;
-			centersigma[i] = totalsigma[i] / population.length;
+			centerSigma[i] = totalSigma[i] / population.length;
 		}
-		// bereken gemiddelde afstanden voor elke dimensie
+
+		// step 2 - calculate average distances for each dimension
+		double[] totaldistX = {0,0,0,0,0,0,0,0,0,0};
+		double[] totaldistSigma = {0,0,0,0,0,0,0,0,0,0};
 		for ( int count = 0; count < population.length; count++ )
 		{
 			for ( int i = 0; i < 10; i++ )
 			{
-				totalX[i] += population[count].getGenotype()[i+10] - centerX[i];
-				totalsigma[i] += population[count].getGenotype()[i] - centersigma[i];
+				totaldistX[i] += (population[count].getGenotype()[i+10] - centerX[i]);
+				totaldistSigma[i] += (population[count].getGenotype()[i] - centerSigma[i]);
 			}				
 		}
+		double[] averageX = new double[10];
+		double[] averageSigma = new double[10];
 		for ( int i = 0; i < 10; i++ )
 		{
-			averageX[i] = totalX[i] / population.length;
-			averagesigma[i] = totalsigma[i] / population.length;
+			averageX[i] = totaldistX[i] / population.length;
+			averageSigma[i] = totaldistSigma[i] / population.length;
 		}
 		// bereken Manhattan distance voor X en voor sigma
+		double diversityX = 0;
+		double diversitySigma = 0;
+		double quasumdiversityX = 0;
+		double quasumdiversitySigma = 0;
+		double totalcenterSigma = 0;
 		for ( int i = 0; i < 10; i++ )
 		{
 			diversityX += averageX[i];
 			quasumdiversityX += Math.pow(centerX[i], 2);
-			diversitysigma += averagesigma[i];
-			quasumdiversitysigma += Math.pow(centersigma[i], 2);
-			totalcentersigma += centersigma[i];
+			diversitySigma += averageSigma[i];
+			quasumdiversitySigma += Math.pow(centerSigma[i], 2);
+			totalcenterSigma += centerSigma[i];
 		} 
-		return new double[] {Math.sqrt(quasumdiversityX), Math.sqrt(quasumdiversitysigma), totalcentersigma } ;
+		// calculate mean, max of genes, min of genes (Tessa's procedure)
+		double maxofgen = 0.0;
+		double minofgen = 10.0;
+		double mean = 0.0;
+		for (int i = 0; i < population.length; i++){
+			if (population[i].getFitness() > maxofgen) {
+				maxofgen = population[i].getFitness();
+				}
+			if (population[i].getFitness() < minofgen) {
+				minofgen = population[i].getFitness();
+				}
+			mean += population[i].getFitness();
+			}
+			mean = mean / population.length;
+		// return values in an array
+		return new double[] {maxofgen, minofgen, mean, Math.sqrt(quasumdiversityX), Math.sqrt(quasumdiversitySigma), totalcenterSigma } ;
 		// return diversitysigma;
 		// return diversityX;
 	}
