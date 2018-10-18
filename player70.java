@@ -19,7 +19,9 @@ public class player70 implements ContestSubmission
 	private static final int GENERATION_LIMIT = 100000;				// TODO - default = 10000
 	private static final int NUMBER_OF_INDIVIDUALS = 100; 				// size of population
 	private static final int CHILDREN_PER_GENERATION = 15;
-	private static final double RANDOM_MUTATION_PROB = 0.01;
+	private static final boolean SIGMA_MUT = true;					// SIGMA_MUT = true: mutation using Normal(Sigma) - false: random swap
+	private static final boolean ONE_CHILD = false;					// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
+	private static final double RANDOM_MUTATION_PROB = 0;				// kans dat een gecreerd kind nog volledige random mutatie van 1 van zijn genen (incl. sigma) krijgt
 
 	private static final double tau = 1/Math.sqrt(10); 	// Learning rate, problem size (n) heb ik geinterpreteerd als dimensies van het fenotype (dat is de consensus ook op Slack op het moment)
 	private static final double epsilon = 1E-6; // Machine precision
@@ -86,7 +88,7 @@ public class player70 implements ContestSubmission
 			//DEBUG System.out.printf("nextPop...generation: %d, aantal pop: %d, aantal parents: %d, aantal children: %d", generation, NUMBER_OF_INDIVIDUALS, newParents.length, num_children);
 
             		// Apply crossover / mutation operators
-			Individual[] newChildren = createChildren(num_children, newParents);
+			Individual[] newChildren = createChildren(num_children, newParents, SIGMA_MUT, ONE_CHILD);
 
 			// Test fitness van gecreerde children
 			for (int i = 0; (i < newChildren.length && evals<evaluations_limit_); i++)
@@ -99,7 +101,13 @@ public class player70 implements ContestSubmission
 			Individual[] newPop = selectSurvivors(currentPop, newChildren);	
 			currentPop = newPop;
 			System.out.print("DIT WAS GENERATIE: ");
-			System.out.println(generation);
+			System.out.print(generation);
+			System.out.print("  DIVERSITEIT X ");
+			System.out.print(divPop(currentPop)[0]);
+			System.out.print("  DIVERSITEIT sigma: ");
+			System.out.print(divPop(currentPop)[1]);
+			System.out.print("  TOTAAL sigma: ");
+			System.out.println(divPop(currentPop)[2]);
 			generation++;
 
 		}	// endwhile
@@ -150,6 +158,62 @@ public class player70 implements ContestSubmission
 		}
 	}
 
+	public static double[] divPop(Individual[] population) // bererkene diversiteit van populatie
+	{
+		// step 1 - calculate center
+		double diversityX = 0;
+		double diversitysigma = 0;
+		double quasumdiversityX = 0;
+		double quasumdiversitysigma = 0;
+		double totalcentersigma = 0;
+		double[] centerX = new double[10];
+		double[] totalX = {0,0,0,0,0,0,0,0,0,0};
+		double[] centersigma = new double[10];
+		double[] totalsigma = {0,0,0,0,0,0,0,0,0,0};
+		double[] averageX = new double[10];
+		double[] averagesigma = new double[10];
+		// bereken centers voor elke dimensie
+		for ( int count = 0; count < population.length; count++ )
+		{
+			for ( int i = 0; i < 10; i++ )
+			{
+				totalX[i] += population[count].getGenotype()[i+10];
+				totalsigma[i] += population[count].getGenotype()[i];
+			}				
+		}
+		for ( int i = 0; i < 10; i++ )
+		{
+			centerX[i] = totalX[i] / population.length;
+			centersigma[i] = totalsigma[i] / population.length;
+		}
+		// bereken gemiddelde afstanden voor elke dimensie
+		for ( int count = 0; count < population.length; count++ )
+		{
+			for ( int i = 0; i < 10; i++ )
+			{
+				totalX[i] += population[count].getGenotype()[i+10] - centerX[i];
+				totalsigma[i] += population[count].getGenotype()[i] - centersigma[i];
+			}				
+		}
+		for ( int i = 0; i < 10; i++ )
+		{
+			averageX[i] = totalX[i] / population.length;
+			averagesigma[i] = totalsigma[i] / population.length;
+		}
+		// bereken Manhattan distance voor X en voor sigma
+		for ( int i = 0; i < 10; i++ )
+		{
+			diversityX += averageX[i];
+			quasumdiversityX += Math.pow(centerX[i], 2);
+			diversitysigma += averagesigma[i];
+			quasumdiversitysigma += Math.pow(centersigma[i], 2);
+			totalcentersigma += centersigma[i];
+		} 
+		return new double[] {Math.sqrt(quasumdiversityX), Math.sqrt(quasumdiversitysigma), totalcentersigma } ;
+		// return diversitysigma;
+		// return diversityX;
+	}
+
 	public static void printPop(Individual[] population)
 	{
 		System.out.println("printpop....:");
@@ -198,48 +262,78 @@ public class player70 implements ContestSubmission
 		return parents;
 	} 
 
-	public static Individual[] createChildren( int numChildren, Individual[] parents )
+	public static Individual[] createChildren( int numChildren, Individual[] parents, boolean sigma_mut, boolean oneChild)
 		// children worden gemaakt uit parents
+		// sigma_mut is switch die aangeeft of random swap (false) dan wel normal selfadaptive sigma mutation (true) wordt gebruikt
+		// oneChild is switch die aangeeft of uit twee parents 1 kind (true) dan wel 2 kinderen worden gecreeerd (false)
+
 	{
-		//   choose mutationtype: sigma-mut = True: mutation using Normal(Sigma) - False: random swap
-		boolean sigma_mut = true;  // TODO parameter-tuning
 		Random rand = new Random(); //TODO Is een aparte random number generator per individu okee of willen we een centrale gebruiken?
 
 		// create empty child population with right number
 		Individual[] newChildren = new Individual[numChildren];
 		
 		int parentcount = 0;		// TODO volgens mij werkt deze procedure alleen als aantal parents > aantal kinderen. 
-		for ( int count = 0; count < numChildren; count=count+2 )
-		{			
-			Individual parent1 = parents[parentcount];
-			parentcount++;
-			Individual parent2 = parents[parentcount];
-			parentcount++;
 
-			double[] child1Genome = recombineGenotypes_twee(parent1.getGenotype(), parent2.getGenotype())[0];
-			double[] child2Genome = recombineGenotypes_twee(parent1.getGenotype(), parent2.getGenotype())[1];
+		if (oneChild)  // als slechts 1 kind uit 2 ouders wordt geproduceerd   TODO naar paramters brengen
+		{
+			for ( int count = 0; count < numChildren; count++ )
+			{
+				Individual parent1 = parents[parentcount];
+				parentcount++;
+				Individual parent2 = parents[parentcount];
+				parentcount++;
 
-			Individual newChild1 = new Individual(child1Genome);
-			Individual newChild2 = new Individual(child2Genome);
+				double[] childGenome = recombineGenotypes(parent1.getGenotype(), parent2.getGenotype());
+				Individual newChild = new Individual(childGenome);
 
-			// Perform the mutation on the childs after recombination (Normal(sigma) or random swap)
-			newChild1.mutGenotype(newChild1.getGenotype(), tau, sigma_mut);
-			newChild2.mutGenotype(newChild2.getGenotype(), tau, sigma_mut);
+				// random mutation
+				newChild.mutGenotype(newChild.getGenotype(), tau, sigma_mut);
 
-			// Perform total random mutation for certain cases
-			if (rand.nextDouble() < RANDOM_MUTATION_PROB)	
-			{	
-				newChild1.mutGenotypeRandom(newChild1.getGenotype());
-				newChild2.mutGenotypeRandom(newChild2.getGenotype());
+				// total random mutation for certain cases - not implemented her
+				if (rand.nextDouble() < RANDOM_MUTATION_PROB)	
+				{	
+					newChild.mutGenotypeRandom(newChild.getGenotype());
+				}
+
+				// voeg nieuw kind toe aan de lijst
+				newChildren[count] = newChild;
 			}
-			newChildren[count] = newChild1;
-			if (count < numChildren-1) {newChildren[count+1] = newChild2;}		
+		}
+		else		// als 2 kinderen uit 2 ouders wordt geproduceerd. 
+		{
+			for ( int count = 0; count < numChildren; count=count+2 )
+			{			
+				Individual parent1 = parents[parentcount];
+				parentcount++;
+				Individual parent2 = parents[parentcount];
+				parentcount++;
+
+				double[] child1Genome = recombineGenotypes_twee(parent1.getGenotype(), parent2.getGenotype())[0];
+				double[] child2Genome = recombineGenotypes_twee(parent1.getGenotype(), parent2.getGenotype())[1];
+
+				Individual newChild1 = new Individual(child1Genome);
+				Individual newChild2 = new Individual(child2Genome);
+
+				// Perform the mutation on the childs after recombination (Normal(sigma) or random swap)
+				newChild1.mutGenotype(newChild1.getGenotype(), tau, sigma_mut);
+				newChild2.mutGenotype(newChild2.getGenotype(), tau, sigma_mut);
+
+				// Perform total random mutation for certain cases
+				if (rand.nextDouble() < RANDOM_MUTATION_PROB)	
+				{	
+					newChild1.mutGenotypeRandom(newChild1.getGenotype());
+					newChild2.mutGenotypeRandom(newChild2.getGenotype());
+				}
+				newChildren[count] = newChild1;
+				if (count < numChildren-1) {newChildren[count+1] = newChild2;}		
+			}
 		}
 		return newChildren;
 	}
 
 	public static double[] recombineGenotypes(double[] genotype1, double[] genotype2)
-	{	// TODO deze wordt niet meer gebruik en kan dus weg
+	{	
 		double[] childGenotype = new double[20];
 		for (int i = 0; i < genotype1.length; i++)
 		{
