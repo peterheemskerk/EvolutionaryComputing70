@@ -77,7 +77,6 @@ public class Individual
 	public void mutGenotype(double[] oldGenotype, double tau, boolean sigma_mut)
 	{	
 		double[] newGenotype = new double[20];
-
 		if (sigma_mut)
 		{   	// start procedure sigma-mut
 

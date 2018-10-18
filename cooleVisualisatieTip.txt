@@ -1,0 +1,7 @@
+Ik heb een heel vette visualisatietool gevonden voor de git commits:
+
+In Linux, typ:
+
+sudo apt-get install gource
+
+gource --file-show-filter .+\.java$
