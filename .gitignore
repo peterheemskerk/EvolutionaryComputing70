@@ -18,3 +18,6 @@
 
 # ook al zitten ze in subfolders:
 !*/
+
+# Negeer wel folder "out" (geen idee waar die ineens vandaan komt)
+/out
