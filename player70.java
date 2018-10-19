@@ -199,13 +199,15 @@ public class player70 implements ContestSubmission
 		double[] centerSigma = new double[10];
 		double[] totalX = {0,0,0,0,0,0,0,0,0,0};
 		double[] totalSigma = {0,0,0,0,0,0,0,0,0,0};
+		double[] currentGenotype;
 		for ( int count = 0; count < population.length; count++ )
 
 		{
+			currentGenotype = population[count].getGenotype(); // Dit bespaart ongeveer 900 keer getGenotype aanroepen
 			for ( int i = 0; i < 10; i++ )
 			{
-				totalX[i] += population[count].getGenotype()[i+10];
-				totalSigma[i] += population[count].getGenotype()[i];
+				totalX[i] += currentGenotype[i+10];
+				totalSigma[i] += currentGenotype[i];
 			}				
 		}
 		for ( int i = 0; i < 10; i++ )
@@ -238,14 +240,17 @@ public class player70 implements ContestSubmission
 		double quasumdiversityX = 0;
 		double quasumdiversitySigma = 0;
 		double totalcenterSigma = 0;
+
 		for ( int i = 0; i < 10; i++ )
 		{
-			diversityX += averageX[i];
-			quasumdiversityX += Math.pow(centerX[i], 2);
-			diversitySigma += averageSigma[i];
-			quasumdiversitySigma += Math.pow(centerSigma[i], 2);
+			quasumdiversityX += Math.pow(averageX[i],2);
+			quasumdiversitySigma += Math.pow(averageSigma[i],2);
+
 			totalcenterSigma += centerSigma[i];
-		} 
+		}
+
+		diversityX = Math.sqrt(quasumdiversityX);
+		diversitySigma = Math.sqrt(quasumdiversitySigma);
 		// calculate mean, max of genes, min of genes (Tessa's procedure)
 		double maxofgen = 0.0;
 		double minofgen = 10.0;
@@ -261,7 +266,7 @@ public class player70 implements ContestSubmission
 			}
 			mean = mean / population.length;
 		// return values in an array
-		return new double[] {maxofgen, minofgen, mean, Math.sqrt(quasumdiversityX), Math.sqrt(quasumdiversitySigma), totalcenterSigma } ;
+		return new double[] {maxofgen, minofgen, mean, diversityX, diversitySigma, totalcenterSigma } ;
 		// return diversitysigma;
 		// return diversityX;
 	}
