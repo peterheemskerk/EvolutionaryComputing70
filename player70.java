@@ -26,7 +26,7 @@ public class player70 implements ContestSubmission
 	private static final int CHILDREN_PER_GENERATION = Integer.parseInt(System.getProperty("chNum"));
 	private static final int TOURNAMENT_SIZE = Integer.parseInt(System.getProperty("ts"));
 	private static final int CHILDREN_PER_PARENT = Integer.parseInt(System.getProperty("chPar"));
-	// private static final String OUTPUT_DIRECTORY = System.getProperty("outputDir");
+	private static final String OUTPUT_DIRECTORY = System.getProperty("outDir");
 	private static final boolean SIGMA_MUT = true;			// SIGMA_MUT = true: mutation using Normal(Sigma) - false: random swap
 	private static final boolean ONE_CHILD = false;			// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
 	private static final double RANDOM_MUTATION_PROB = 0;		// between 0 and 1. kans dat een gecreerd kind nog volledige random mutatie van 1 van zijn genen (incl. sigma) kri
@@ -84,14 +84,14 @@ public class player70 implements ContestSubmission
 
 		// Nieuwe file aanmaken met goede parameters
 		try{
-			File fout = new File("run_" + runIndex + "_chNum_" + CHILDREN_PER_GENERATION + "_ts_" + TOURNAMENT_SIZE + "_chPar" + CHILDREN_PER_PARENT + ".csv");
+			File fout = new File("./results/" + OUTPUT_DIRECTORY + "/run_" + runIndex + "_chNum_" + CHILDREN_PER_GENERATION + "_ts_" + TOURNAMENT_SIZE + "_chPar_" + CHILDREN_PER_PARENT + ".csv");
 			FileOutputStream fos = new FileOutputStream(fout);
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 
 
 
 		// print to csv
-			bw.write("Generation; Max; Min; Mean; DiversityX; DiversitySigma; TotalDistSigma");
+			bw.write("Generation;Max;Min;Mean;DiversityX;DiversitySigma;TotalDistSigma");
 			bw.newLine();
 		// System.out.println("Generation; Max; Min; Mean; DiversityX; DiversitySigma; TotalDistSigma");
 
@@ -144,7 +144,7 @@ public class player70 implements ContestSubmission
 			double totaldistSigma = divresults[5];
 
 
-				bw.write(generation + "; " + maxofgen + "; " + minofgen + "; " + mean_fitness + "; " + diversityX + "; " + diversitySigma + "; " + totaldistSigma);
+				bw.write(generation + ";" + maxofgen + ";" + minofgen + ";" + mean_fitness + ";" + diversityX + ";" + diversitySigma + ";" + totaldistSigma);
 				bw.newLine();
 
 
@@ -170,7 +170,7 @@ public class player70 implements ContestSubmission
 			System.err.println("Something is wrong with writing to csv");
 		}// Endwhile
 
-		System.out.println("Generation; Max Fitness; Min Fitness - Mean Fitness - Diversity X - Diversity Sigma - Total Sigma");
+		// System.out.println("Generation; Max Fitness; Min Fitness - Mean Fitness - Diversity X - Diversity Sigma - Total Sigma");
 		System.out.print("GENERATION AT WHICH FITNESS TRESHOLD ");
 		System.out.print(FITNESS_TRESHOLD);
 		System.out.print(" IS REACHED: ");

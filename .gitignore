@@ -12,6 +12,9 @@
 !*.pdf
 !*.dll
 !*.ipynb
+!*.py
+!*.csv
+!*.sh
 
 # En deze specifieke folders:
 !/META-INF/
