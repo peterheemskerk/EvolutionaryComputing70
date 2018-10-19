@@ -5,10 +5,10 @@ timestamp() {
   date +"%T"
 }
 
-numberOfChildrenList=(10 30 50)
-tournamentSizeList=(5 10)
+numberOfChildrenList=(10 30 50 70 90)
+tournamentSizeList=(5 10 15 20 40)
 childrenPerParentList=(1)
-runsPerSet=3
+runsPerSet=100
 
 mkdir results
 

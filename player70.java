@@ -28,7 +28,7 @@ public class player70 implements ContestSubmission
 	private static final int CHILDREN_PER_PARENT = Integer.parseInt(System.getProperty("chPar"));
 	private static final String OUTPUT_DIRECTORY = System.getProperty("outDir");
 	private static final boolean SIGMA_MUT = true;			// SIGMA_MUT = true: mutation using Normal(Sigma) - false: random swap
-	private static final boolean ONE_CHILD = false;			// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
+	private static final boolean ONE_CHILD = (CHILDREN_PER_PARENT==1);			// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
 	private static final double RANDOM_MUTATION_PROB = 0;		// between 0 and 1. kans dat een gecreerd kind nog volledige random mutatie van 1 van zijn genen (incl. sigma) kri
 	private static final double FITNESS_TRESHOLD = 9.9;		// use to determine number of iterations needed to reach this fitnes treshold. 
 
