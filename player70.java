@@ -1,5 +1,7 @@
 import org.vu.contest.ContestSubmission;
 import org.vu.contest.ContestEvaluation;
+
+import java.io.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,7 +23,10 @@ public class player70 implements ContestSubmission
 
 	private static final int GENERATION_LIMIT = 1000000;		// TODO - default = 10000
 	private static final int NUMBER_OF_INDIVIDUALS = 100; 		// size of population
-	private static final int CHILDREN_PER_GENERATION = 15;
+	private static final int CHILDREN_PER_GENERATION = Integer.parseInt(System.getProperty("chNum"));
+	private static final int TOURNAMENT_SIZE = Integer.parseInt(System.getProperty("ts"));
+	private static final int CHILDREN_PER_PARENT = Integer.parseInt(System.getProperty("chPar"));
+	// private static final String OUTPUT_DIRECTORY = System.getProperty("outputDir");
 	private static final boolean SIGMA_MUT = true;			// SIGMA_MUT = true: mutation using Normal(Sigma) - false: random swap
 	private static final boolean ONE_CHILD = false;			// ONE_CHILD = false: 2 childres produced - true: one child produced from 2 parents
 	private static final double RANDOM_MUTATION_PROB = 0;		// between 0 and 1. kans dat een gecreerd kind nog volledige random mutatie van 1 van zijn genen (incl. sigma) kri
@@ -75,8 +80,20 @@ public class player70 implements ContestSubmission
 		boolean treshhold_reached = false;
 		final Random randomNumbers = new Random();			// random number generator
 
+		String runIndex = System.getProperty("runIndex");
+
+		// Nieuwe file aanmaken met goede parameters
+		try{
+			File fout = new File("run_" + runIndex + "_chNum_" + CHILDREN_PER_GENERATION + "_ts_" + TOURNAMENT_SIZE + "_chPar" + CHILDREN_PER_PARENT + ".csv");
+			FileOutputStream fos = new FileOutputStream(fout);
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+
+
+
 		// print to csv
-		System.out.println("Generation; Max; Min; Mean");
+			bw.write("Generation; Max; Min; Mean; DiversityX; DiversitySigma; TotalDistSigma");
+			bw.newLine();
+		// System.out.println("Generation; Max; Min; Mean; DiversityX; DiversitySigma; TotalDistSigma");
 
         	// init population
 		Individual[] currentPop = initPopulation(NUMBER_OF_INDIVIDUALS);
@@ -126,7 +143,14 @@ public class player70 implements ContestSubmission
 			double diversitySigma = divresults[4];
 			double totaldistSigma = divresults[5];
 
-			System.out.println(generation + "; " + maxofgen + "; " + minofgen + "; " + mean_fitness + "; " + diversityX + "; " + diversitySigma + "; " + totaldistSigma );
+
+				bw.write(generation + "; " + maxofgen + "; " + minofgen + "; " + mean_fitness + "; " + diversityX + "; " + diversitySigma + "; " + totaldistSigma);
+				bw.newLine();
+
+
+
+
+			// System.out.println(generation + "; " + maxofgen + "; " + minofgen + "; " + mean_fitness + "; " + diversityX + "; " + diversitySigma + "; " + totaldistSigma);
 			// System.out.print("DIT WAS GENERATIE: ");
 			// System.out.println(generation);
 
@@ -140,7 +164,12 @@ public class player70 implements ContestSubmission
 			currentPop = newPop;
 			generation++;
 
-		}	// Endwhile
+		}
+			bw.close();
+		}catch (Exception e){
+			System.err.println("Something is wrong with writing to csv");
+		}// Endwhile
+
 		System.out.println("Generation; Max Fitness; Min Fitness - Mean Fitness - Diversity X - Diversity Sigma - Total Sigma");
 		System.out.print("GENERATION AT WHICH FITNESS TRESHOLD ");
 		System.out.print(FITNESS_TRESHOLD);
@@ -287,7 +316,7 @@ public class player70 implements ContestSubmission
 		int num_of_parents = 2 * CHILDREN_PER_GENERATION;
 		Individual[] parents = new Individual[num_of_parents];
 		int parentInd = 0;
-		int tournamentSize = 5;
+		int tournamentSize = TOURNAMENT_SIZE;
 		Individual bestIndividual = new Individual();
 		Individual secondBestIndividual = new Individual();
 
