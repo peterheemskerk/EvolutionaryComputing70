@@ -8,7 +8,7 @@ timestamp() {
 numberOfChildrenList=(10 30 50 70 90)
 tournamentSizeList=(5 10 15 20 40)
 childrenPerParentList=(1)
-runsPerSet=100
+runsPerSet=1
 
 mkdir results
 

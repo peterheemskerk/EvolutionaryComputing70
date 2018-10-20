@@ -91,7 +91,7 @@ public class player70 implements ContestSubmission
 
 
 		// print to csv
-			bw.write("Generation;Max;Min;Mean;DiversityX;DiversitySigma;TotalDistSigma");
+			bw.write("Generation;Max;Min;Mean;DiversityX;LogDivX;DiversitySigma;TotalDistSigma");
 			bw.newLine();
 		// System.out.println("Generation; Max; Min; Mean; DiversityX; DiversitySigma; TotalDistSigma");
 
@@ -140,11 +140,12 @@ public class player70 implements ContestSubmission
 			double minofgen = divresults[1];
 			double mean_fitness = divresults[2];
 			double diversityX = divresults[3];
-			double diversitySigma = divresults[4];
-			double totaldistSigma = divresults[5];
+			double logdiversityX = divresults[4];
+			double diversitySigma = divresults[5];
+			double totaldistSigma = divresults[6];
 
 
-				bw.write(generation + ";" + maxofgen + ";" + minofgen + ";" + mean_fitness + ";" + diversityX + ";" + diversitySigma + ";" + totaldistSigma);
+				bw.write(generation + ";" + maxofgen + ";" + minofgen + ";" + mean_fitness + ";" + diversityX + ";" + logdiversityX + ";" + diversitySigma + ";" + totaldistSigma);
 				bw.newLine();
 
 
@@ -252,8 +253,8 @@ public class player70 implements ContestSubmission
 		{
 			for ( int i = 0; i < 10; i++ )
 			{
-				totaldistX[i] += (population[count].getGenotype()[i+10] - centerX[i]);
-				totaldistSigma[i] += (population[count].getGenotype()[i] - centerSigma[i]);
+				totaldistX[i] += Math.abs((population[count].getGenotype()[i+10] - centerX[i]));        // aangepast ph
+				totaldistSigma[i] += Math.abs((population[count].getGenotype()[i] - centerSigma[i]));   // aangepast ph
 			}				
 		}
 		double[] averageX = new double[10];
@@ -267,6 +268,7 @@ public class player70 implements ContestSubmission
 		double diversityX = 0;
 		double diversitySigma = 0;
 		double quasumdiversityX = 0;
+		double logdivX = 0;
 		double quasumdiversitySigma = 0;
 		double totalcenterSigma = 0;
 
@@ -279,7 +281,9 @@ public class player70 implements ContestSubmission
 		}
 
 		diversityX = Math.sqrt(quasumdiversityX);
+		logdivX = Math.log(Math.sqrt(quasumdiversityX));
 		diversitySigma = Math.sqrt(quasumdiversitySigma);
+
 		// calculate mean, max of genes, min of genes (Tessa's procedure)
 		double maxofgen = 0.0;
 		double minofgen = 10.0;
@@ -295,7 +299,7 @@ public class player70 implements ContestSubmission
 			}
 			mean = mean / population.length;
 		// return values in an array
-		return new double[] {maxofgen, minofgen, mean, diversityX, diversitySigma, totalcenterSigma } ;
+		return new double[] {maxofgen, minofgen, mean, diversityX, logdivX, diversitySigma, totalcenterSigma } ;
 		// return diversitysigma;
 		// return diversityX;
 	}
