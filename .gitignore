@@ -24,3 +24,4 @@
 
 # Negeer wel folder "out" (geen idee waar die ineens vandaan komt)
 /out
+/results
